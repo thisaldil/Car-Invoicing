@@ -1,43 +1,23 @@
-import React, { useEffect, useMemo, useState } from "react"
-import { PlusIcon, TrashIcon, ArrowLeftIcon, ArrowRightIcon } from "lucide-react"
+import React, { useMemo, useState } from "react"
+import { PlusIcon, TrashIcon } from "lucide-react"
 
-const API_KEY = "K+PWSMhZ3khsoUg8gJTnzA==8gSEMzLHhLbRwqR8"
-
-// Predefined makes list (you can expand this)
-const MAKES = [
-  "Toyota",
-  "Nissan",
-  "Honda",
-  "Mercedes-Benz",
-  "BMW",
-  "Ford",
-  "Mazda",
-  "Mitsubishi",
-  "Hyundai",
-  "Kia",
-]
-
-export default function CarInvoiceForm({ onBack, onContinue, onSave }) {
-  const [modelsByMake, setModelsByMake] = useState({})
-  const [loadingModel, setLoadingModel] = useState(false)
-
+export default function ProformaInvoiceForm({ onSave }) {
   const [invoice, setInvoice] = useState({
     consigneeName: "",
-    invoiceNo: "",
-    date: new Date().toISOString().slice(0, 10),
     addressLine1: "",
     addressLine2: "",
     addressLine3: "",
+    invoiceNo: "",
+    date: new Date().toISOString().slice(0, 10),
     description: "USED MOTOR VEHICLES",
-    currency: "LKR",
     items: [
       {
         make: "",
         model: "",
-        year: "",
         chassisNo: "",
+        year: "",
         hsCode: "",
-        qty: 1,
+        qty: "1 UNIT",
         fob: "",
         insurance: "",
         freight: "",
@@ -63,8 +43,10 @@ export default function CarInvoiceForm({ onBack, onContinue, onSave }) {
       )
       if (["fob", "insurance", "freight"].includes(key)) {
         const row = next.items[index]
-        const cif = toNum(row.fob) + toNum(row.insurance) + toNum(row.freight)
-        next.items[index].cif = Number.isFinite(cif) && cif > 0 ? String(cif) : ""
+        const cif =
+          toNum(row.fob) + toNum(row.insurance) + toNum(row.freight)
+        next.items[index].cif =
+          Number.isFinite(cif) && cif > 0 ? String(cif) : ""
       }
       return next
     })
@@ -78,10 +60,10 @@ export default function CarInvoiceForm({ onBack, onContinue, onSave }) {
         {
           make: "",
           model: "",
-          year: "",
           chassisNo: "",
+          year: "",
           hsCode: "",
-          qty: 1,
+          qty: "1 UNIT",
           fob: "",
           insurance: "",
           freight: "",
@@ -96,173 +78,228 @@ export default function CarInvoiceForm({ onBack, onContinue, onSave }) {
       items: prev.items.filter((_, i) => i !== index),
     }))
 
-  // Fetch all models for a make across multiple years
-  const fetchModelsForMake = async (make) => {
-    if (!make) return
-    if (modelsByMake[make]) return
-    try {
-      setLoadingModel(true)
-      const models = new Set()
-      for (let year = 2015; year <= 2024; year++) {
-        const url = `https://api.api-ninjas.com/v1/cars?make=${encodeURIComponent(
-          make
-        )}&year=${year}`
-        const res = await fetch(url, { headers: { "X-Api-Key": API_KEY } })
-        const data = await res.json()
-        data.forEach((car) => models.add(car.model))
-      }
-      setModelsByMake((m) => ({ ...m, [make]: Array.from(models).sort() }))
-    } finally {
-      setLoadingModel(false)
-    }
-  }
-
-  const isValid = useMemo(() => {
-    const headerOk =
-      invoice.consigneeName.trim() &&
-      invoice.invoiceNo.trim() &&
-      invoice.date &&
-      invoice.currency.trim()
-    const rowsOk =
-      invoice.items.length > 0 &&
-      invoice.items.every(
-        (r) =>
-          r.make &&
-          r.model &&
-          r.year &&
-          r.chassisNo.trim() &&
-          r.hsCode.trim() &&
-          Number(r.qty) > 0 &&
-          toNum(r.fob) >= 0 &&
-          toNum(r.insurance) >= 0 &&
-          toNum(r.freight) >= 0 &&
-          toNum(r.cif) > 0
-      )
-    return Boolean(headerOk && rowsOk)
-  }, [invoice])
-
-  const save = () => onSave?.(invoice)
-  const next = () => onContinue?.(invoice)
-
   return (
     <div className="space-y-8">
-      <header className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Car Invoice (Manual Entry)
-        </h1>
-        <span className="inline-flex items-center px-3 py-1 text-sm rounded-md bg-orange-100 text-orange-700 dark:bg-orange-200">
-          Total CIF: {invoice.currency} {formatMoney(totalCIF)}
-        </span>
-      </header>
-
-      <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div className="space-y-4">
-          {invoice.items.map((row, i) => {
-            const models = row.make ? modelsByMake[row.make] || [] : []
-            return (
-              <div
-                key={i}
-                className="rounded-md border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-700"
-              >
-                <div className="grid md:grid-cols-3 gap-3">
-                  <Field
-                    label="Make"
-                    value={row.make}
-                    onChange={async (v) => {
-                      handleItemChange(i, "make", v)
-                      handleItemChange(i, "model", "")
-                      await fetchModelsForMake(v)
-                    }}
-                    required
-                    as="select"
-                    options={MAKES}
-                  />
-                  <Field
-                    label={loadingModel ? "Model (loading...)" : "Model"}
-                    value={row.model}
-                    onChange={(v) => handleItemChange(i, "model", v)}
-                    required
-                    as="select"
-                    options={models}
-                    placeholder="Select Model"
-                  />
-                  <Field
-                    label="Year"
-                    type="number"
-                    value={row.year}
-                    onChange={(v) => handleItemChange(i, "year", v)}
-                    required
-                  />
-                </div>
-              </div>
-            )
-          })}
+      {/* Customer/Consignee Details */}
+      <section className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow p-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          Customer Details
+        </h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          <Field
+            label="Consignee (Company)"
+            value={invoice.consigneeName}
+            onChange={(v) => setInvoice((s) => ({ ...s, consigneeName: v }))}
+            required
+          />
+          <Field
+            label="Invoice No."
+            value={invoice.invoiceNo}
+            onChange={(v) => setInvoice((s) => ({ ...s, invoiceNo: v }))}
+            required
+          />
+          <Field
+            label="Date"
+            type="date"
+            value={invoice.date}
+            onChange={(v) => setInvoice((s) => ({ ...s, date: v }))}
+            required
+          />
+          <Field
+            label="Description"
+            value={invoice.description}
+            onChange={(v) => setInvoice((s) => ({ ...s, description: v }))}
+          />
+          <Field
+            label="Address Line 1"
+            value={invoice.addressLine1}
+            onChange={(v) => setInvoice((s) => ({ ...s, addressLine1: v }))}
+          />
+          <Field
+            label="Address Line 2"
+            value={invoice.addressLine2}
+            onChange={(v) => setInvoice((s) => ({ ...s, addressLine2: v }))}
+          />
+          <Field
+            label="Address Line 3"
+            value={invoice.addressLine3}
+            onChange={(v) => setInvoice((s) => ({ ...s, addressLine3: v }))}
+          />
         </div>
       </section>
 
-      <div className="flex justify-between">
-        <button
-          onClick={onBack}
-          className="flex items-center px-6 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-        >
-          <ArrowLeftIcon className="w-4 h-4 mr-2" />
-          Back
-        </button>
-        <div className="flex gap-3">
+      {/* Vehicle Details */}
+      <section className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            Vehicle Details
+          </h2>
           <button
-            onClick={save}
-            className="px-6 py-2 rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+            onClick={addRow}
+            className="flex items-center gap-2 px-3 py-2 rounded-md bg-orange-600 text-white hover:bg-orange-700"
           >
-            Save
-          </button>
-          <button
-            onClick={next}
-            disabled={!isValid}
-            className={`flex items-center px-6 py-2 rounded-md ${
-              isValid
-                ? "bg-orange-600 text-white hover:bg-orange-700"
-                : "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
-            }`}
-          >
-            Continue
-            <ArrowRightIcon className="w-4 h-4 ml-2" />
+            <PlusIcon className="w-4 h-4" /> Add Vehicle
           </button>
         </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-400 dark:border-gray-600 text-sm">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                <th className="border px-2 py-1">#</th>
+                <th className="border px-2 py-1">Make</th>
+                <th className="border px-2 py-1">Model</th>
+                <th className="border px-2 py-1">Chassis No</th>
+                <th className="border px-2 py-1">Year</th>
+                <th className="border px-2 py-1">HS Code</th>
+                <th className="border px-2 py-1">Qty</th>
+                <th className="border px-2 py-1">FOB</th>
+                <th className="border px-2 py-1">Insurance</th>
+                <th className="border px-2 py-1">Freight</th>
+                <th className="border px-2 py-1">CIF</th>
+                <th className="border px-2 py-1">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoice.items.map((row, i) => (
+                <tr key={i} className="text-gray-900 dark:text-gray-100">
+                  <td className="border px-2 py-1">{i + 1}</td>
+                  <td className="border px-2 py-1">
+                    <input
+                      type="text"
+                      value={row.make}
+                      onChange={(e) =>
+                        handleItemChange(i, "make", e.target.value)
+                      }
+                      className="w-full bg-transparent outline-none"
+                    />
+                  </td>
+                  <td className="border px-2 py-1">
+                    <input
+                      type="text"
+                      value={row.model}
+                      onChange={(e) =>
+                        handleItemChange(i, "model", e.target.value)
+                      }
+                      className="w-full bg-transparent outline-none"
+                    />
+                  </td>
+                  <td className="border px-2 py-1">
+                    <input
+                      type="text"
+                      value={row.chassisNo}
+                      onChange={(e) =>
+                        handleItemChange(i, "chassisNo", e.target.value)
+                      }
+                      className="w-full bg-transparent outline-none"
+                    />
+                  </td>
+                  <td className="border px-2 py-1">
+                    <input
+                      type="number"
+                      value={row.year}
+                      onChange={(e) =>
+                        handleItemChange(i, "year", e.target.value)
+                      }
+                      className="w-full bg-transparent outline-none"
+                    />
+                  </td>
+                  <td className="border px-2 py-1">
+                    <input
+                      type="text"
+                      value={row.hsCode}
+                      onChange={(e) =>
+                        handleItemChange(i, "hsCode", e.target.value)
+                      }
+                      className="w-full bg-transparent outline-none"
+                    />
+                  </td>
+                  <td className="border px-2 py-1">
+                    <input
+                      type="text"
+                      value={row.qty}
+                      onChange={(e) =>
+                        handleItemChange(i, "qty", e.target.value)
+                      }
+                      className="w-full bg-transparent outline-none"
+                    />
+                  </td>
+                  <td className="border px-2 py-1">
+                    <input
+                      type="number"
+                      value={row.fob}
+                      onChange={(e) =>
+                        handleItemChange(i, "fob", e.target.value)
+                      }
+                      className="w-full bg-transparent outline-none"
+                    />
+                  </td>
+                  <td className="border px-2 py-1">
+                    <input
+                      type="number"
+                      value={row.insurance}
+                      onChange={(e) =>
+                        handleItemChange(i, "insurance", e.target.value)
+                      }
+                      className="w-full bg-transparent outline-none"
+                    />
+                  </td>
+                  <td className="border px-2 py-1">
+                    <input
+                      type="number"
+                      value={row.freight}
+                      onChange={(e) =>
+                        handleItemChange(i, "freight", e.target.value)
+                      }
+                      className="w-full bg-transparent outline-none"
+                    />
+                  </td>
+                  <td className="border px-2 py-1">{row.cif}</td>
+                  <td className="border px-2 py-1 text-center">
+                    <button
+                      onClick={() => removeRow(i)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="text-right mt-4 font-bold text-gray-900 dark:text-white">
+          Total CIF: {formatMoney(totalCIF)}
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button
+          onClick={() => onSave?.(invoice)}
+          className="px-6 py-2 rounded-md bg-orange-600 text-white hover:bg-orange-700"
+        >
+          Save Invoice
+        </button>
       </div>
     </div>
   )
 }
 
-function Field({ label, value, onChange, placeholder, required, type = "text", as, options }) {
+function Field({ label, value, onChange, placeholder, required, type = "text" }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
-        {label} {required ? <span className="text-red-600">*</span> : null}
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
-      {as === "select" ? (
-        <select
-          value={value}
-          onChange={(e) => onChange?.(e.target.value)}
-          className="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-          required={required}
-        >
-          <option value="">{placeholder || "Select"}</option>
-          {options?.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange?.(e.target.value)}
-          placeholder={placeholder}
-          className="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-          required={required}
-        />
-      )}
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+        placeholder={placeholder}
+        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+        required={required}
+      />
     </div>
   )
 }
