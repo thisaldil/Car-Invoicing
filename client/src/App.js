@@ -20,6 +20,7 @@ import Register from "./components/auth/Register.jsx";
 import AllInvoices from "./components/AllInvoices";
 import Settings from "./components/Settings";
 import Crm from "./components/Crm";
+import CarInvoiceForm from "./components/invoice/CarInvoiceForm.jsx";
 
 function AppWrapper() {
   const [uploadedInvoice, setUploadedInvoice] = useState(null);

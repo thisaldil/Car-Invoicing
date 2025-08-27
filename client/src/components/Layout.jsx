@@ -52,8 +52,7 @@ function Layout() {
         } md:translate-x-0`}
       >
         <div className="hidden md:block p-6 border-b border-gray-200 dark:border-gray-700">
-          <img src={logo} alt="logo" className="max-w-32 block dark:hidden" />
-          <img src={darklogo} alt="dark logo" className="max-w-32 hidden dark:block" />
+          <img src={logo} alt="logo" className="max-w-32" />
         </div>
 
         <nav className="mt-6">
@@ -67,7 +66,7 @@ function Layout() {
                   }}
                   className={`flex items-center w-full px-6 py-3 text-left transition-all ${
                     location.pathname === item.path
-                      ? "bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400 border-r-4 border-blue-600 dark:border-blue-400"
+                      ? "bg-orange-50 dark:bg-orange-900 text-orange-600 dark:text-orange-400 border-r-4 border-orange-600 dark:border-orange-400"
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >

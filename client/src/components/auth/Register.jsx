@@ -100,7 +100,7 @@ const Register = () => {
             />
             <div className="mt-6 text-sm text-gray-600">
               Already have an account?{" "}
-              <Link to="/login" className="text-blue-500 hover:underline">
+              <Link to="/login" className="text-orange-500 hover:underline">
                 Login here
               </Link>
             </div>

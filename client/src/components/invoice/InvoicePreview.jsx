@@ -163,7 +163,7 @@ function InvoicePreview({ invoice = {}, onContinue, onBack, onEdit }) {
                               };
                               handleFieldEdit("passengers", updated);
                             }}
-                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                             required
                           >
                             <option value="">Select Country</option>
@@ -192,7 +192,7 @@ function InvoicePreview({ invoice = {}, onContinue, onBack, onEdit }) {
                               };
                               handleFieldEdit("passengers", updated);
                             }}
-                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                             required
                           />
                         </div>
@@ -211,7 +211,7 @@ function InvoicePreview({ invoice = {}, onContinue, onBack, onEdit }) {
                               };
                               handleFieldEdit("passengers", updated);
                             }}
-                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                             required
                           >
                             <option value="">Select Gender</option>
@@ -241,7 +241,7 @@ function InvoicePreview({ invoice = {}, onContinue, onBack, onEdit }) {
                     <h4 className="font-medium text-gray-800 dark:text-white">
                       {flight.flightNumber || `Flight #${index + 1}`}
                     </h4>
-                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                    <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
                       {flight.class}
                     </span>
                   </div>
@@ -291,7 +291,7 @@ function InvoicePreview({ invoice = {}, onContinue, onBack, onEdit }) {
                 <select
                   value={invoice.currency || ""}
                   onChange={(e) => handleFieldEdit("currency", e.target.value)}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                   required
                 >
                   <option value="">Select Currency</option>
@@ -311,7 +311,7 @@ function InvoicePreview({ invoice = {}, onContinue, onBack, onEdit }) {
                   onChange={(e) =>
                     handleFieldEdit("paymentMethod", e.target.value)
                   }
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                   required
                 >
                   <option value="">Select Payment Method</option>
@@ -333,7 +333,7 @@ function InvoicePreview({ invoice = {}, onContinue, onBack, onEdit }) {
                   value={invoice.totalAmount || ""}
                   onChange={(e) => handleAmountChange(e.target.value)}
                   placeholder="e.g., 45000.00"
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                   required
                 />
               </div>
@@ -362,7 +362,7 @@ function InvoicePreview({ invoice = {}, onContinue, onBack, onEdit }) {
           disabled={!isValid}
           className={`flex items-center px-6 py-2 rounded-md ${
             isValid
-              ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              ? "bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
               : "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
           }`}
         >
@@ -386,7 +386,7 @@ const Field = ({ label, value, onEdit, readOnly, placeholder, required }) => (
       readOnly={readOnly}
       required={required}
       placeholder={placeholder}
-      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 read-only:bg-gray-50 dark:read-only:bg-gray-700 read-only:text-gray-500 dark:read-only:text-gray-400"
+      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-orange-500 focus:border-orange-500 read-only:bg-gray-50 dark:read-only:bg-gray-700 read-only:text-gray-500 dark:read-only:text-gray-400"
     />
   </div>
 );

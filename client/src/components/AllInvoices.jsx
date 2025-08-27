@@ -129,7 +129,7 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
           <div
             key={invoice._id}
             onClick={() => handleClick(invoice)}
-            className="relative cursor-pointer border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-md hover:border-blue-500 hover:shadow-lg transition"
+            className="relative cursor-pointer border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-md hover:border-orange-500 hover:shadow-lg transition"
           >
             <div className="p-2 px-4 flex items-center border-b border-gray-200 dark:border-gray-700">
               <div className="flex flex-row justify-between items-center w-full">

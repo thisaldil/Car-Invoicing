@@ -92,10 +92,10 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
         {/* Create New Template Card */}
         <div
           onClick={onCreateTemplate}
-          className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center p-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-800 dark:hover:border-blue-400 transition-colors h-full"
+          className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center p-6 cursor-pointer hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-gray-800 dark:hover:border-orange-400 transition-colors h-full"
         >
-          <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-3 mb-4">
-            <PlusIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <div className="bg-orange-100 dark:bg-orange-900 rounded-full p-3 mb-4">
+            <PlusIcon className="w-6 h-6 text-orange-600 dark:text-orange-400" />
           </div>
           <h3 className="font-medium text-gray-800 dark:text-white mb-1">
             Create New Template
@@ -112,8 +112,8 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
             onClick={() => setSelectedTemplateId(template._id)}
             className={`relative border rounded-lg overflow-hidden transition-all ${
               selectedTemplateId === template._id && invoiceData
-                ? "cursor-pointer ring-2 ring-blue-500 border-transparent"
-                : "border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-400 bg-white dark:bg-gray-800"
+                ? "cursor-pointer ring-2 ring-orange-500 border-transparent"
+                : "border-gray-200 dark:border-gray-700 hover:border-orange-200 dark:hover:border-orange-400 bg-white dark:bg-gray-800"
             }`}
           >
             {/* Template Preview Image */}
@@ -127,7 +127,7 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
                 className="w-full h-full object-cover"
               />
               {template.isDefault && (
-                <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                <div className="absolute top-2 right-2 bg-orange-600 text-white text-xs px-2 py-1 rounded">
                   Default
                 </div>
               )}
@@ -152,8 +152,8 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
                     }}
                     className={`text-sm ${
                       template.isDefault
-                        ? "text-blue-600 dark:text-blue-400 cursor-default"
-                        : "text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                        ? "text-orange-600 dark:text-orange-400 cursor-default"
+                        : "text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400"
                     }`}
                   >
                     <div className="flex items-center">
@@ -170,7 +170,7 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
                         e.stopPropagation();
                         navigate(`/dashboard/template-editor/${template._id}`);
                       }}
-                      className="text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      className="text-gray-400 dark:text-gray-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                     >
                       <EditIcon className="w-4 h-4" />
                     </button>
@@ -190,9 +190,9 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
 
             {/* Selection Overlay */}
             {selectedTemplateId === template._id && invoiceData && (
-              <div className="absolute inset-0 bg-blue-500 bg-opacity-10 dark:bg-blue-500 dark:bg-opacity-20 flex items-center justify-center">
+              <div className="absolute inset-0 bg-orange-500 bg-opacity-10 dark:bg-orange-500 dark:bg-opacity-20 flex items-center justify-center">
                 <div className="bg-white dark:bg-gray-800 rounded-full p-2 shadow-md">
-                  <CheckIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <CheckIcon className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                 </div>
               </div>
             )}
@@ -206,7 +206,7 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
             disabled={!selectedTemplateId}
             className={`px-6 py-2 rounded-md ${
               selectedTemplateId
-                ? "bg-blue-600 text-white hover:bg-blue-700"
+                ? "bg-orange-600 text-white hover:bg-orange-700"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >

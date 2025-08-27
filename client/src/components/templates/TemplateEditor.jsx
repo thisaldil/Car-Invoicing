@@ -278,7 +278,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
             <button
               onClick={handleSave}
               disabled={uploading}
-              className={`px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-md flex items-center transition-colors ${
+              className={`px-4 py-2 bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-800 text-white rounded-md flex items-center transition-colors ${
                 uploading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
               }`}
             >
@@ -308,7 +308,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   ref={sectionRefs.header}
                   className={`p-6 border-b border-gray-200 dark:border-gray-600 flex justify-between items-start cursor-pointer transition-all ${
                     selectedSection === "header"
-                      ? "ring-2 ring-blue-500 dark:ring-blue-400"
+                      ? "ring-2 ring-orange-500 dark:ring-orange-400"
                       : ""
                   }`}
                   onClick={() => setSelectedSection("header")}
@@ -351,7 +351,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   ref={sectionRefs.info}
                   className={`p-6 grid grid-cols-2 gap-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer transition-all ${
                     selectedSection === "info"
-                      ? "ring-2 ring-blue-500 dark:ring-blue-400"
+                      ? "ring-2 ring-orange-500 dark:ring-orange-400"
                       : ""
                   }`}
                   onClick={() => setSelectedSection("info")}
@@ -409,7 +409,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   ref={sectionRefs.flights}
                   className={`p-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer transition-all ${
                     selectedSection === "flights"
-                      ? "ring-2 ring-blue-500 dark:ring-blue-400"
+                      ? "ring-2 ring-orange-500 dark:ring-orange-400"
                       : ""
                   }`}
                   onClick={() => setSelectedSection("flights")}
@@ -473,7 +473,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   ref={sectionRefs.pricing}
                   className={`p-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer transition-all ${
                     selectedSection === "pricing"
-                      ? "ring-2 ring-blue-500 dark:ring-blue-400"
+                      ? "ring-2 ring-orange-500 dark:ring-orange-400"
                       : ""
                   }`}
                   onClick={() => setSelectedSection("pricing")}
@@ -523,7 +523,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                     ref={sectionRefs.footer}
                     className={`p-6 text-center cursor-pointer transition-all ${
                       selectedSection === "footer"
-                        ? "ring-2 ring-blue-500 dark:ring-blue-400"
+                        ? "ring-2 ring-orange-500 dark:ring-orange-400"
                         : ""
                     }`}
                     onClick={() => setSelectedSection("footer")}
@@ -559,7 +559,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   type="text"
                   value={templateName}
                   onChange={(e) => setTemplateName(e.target.value)}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
                 />
               </div>
 
@@ -571,7 +571,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
                 />
               </div>
 
@@ -605,7 +605,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   value={companyAddress}
                   onChange={(e) => setCompanyAddress(e.target.value)}
                   rows={4}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
                 />
               </div>
 
@@ -624,7 +624,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                     type="text"
                     value={accentColor}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
                   />
                 </div>
               </div>
@@ -635,7 +635,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   id="showFooter"
                   checked={showFooter}
                   onChange={(e) => setShowFooter(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400"
+                  className="w-4 h-4 text-orange-600 dark:text-orange-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500 dark:focus:ring-orange-400"
                 />
                 <label
                   htmlFor="showFooter"
@@ -654,7 +654,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                     type="text"
                     value={footerText}
                     onChange={(e) => setFooterText(e.target.value)}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
                   />
                 </div>
               )}
@@ -702,7 +702,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                       }}
                       className={`flex items-center w-full p-2 rounded-md text-left transition-colors ${
                         selectedSection === section.id
-                          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                          ? "bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400"
                           : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                       }`}
                     >

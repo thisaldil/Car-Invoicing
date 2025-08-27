@@ -68,7 +68,7 @@ const Settings = () => {
                 className={`p-3 rounded-full border-2 transition-all
                   ${
                     theme === option.value
-                      ? "bg-blue-100 dark:bg-blue-900 border-blue-500 text-blue-600 dark:text-blue-400"
+                      ? "bg-orange-100 dark:bg-orange-900 border-orange-500 text-orange-600 dark:text-orange-400"
                       : "border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700"
                   }`}
                 title={option.label}

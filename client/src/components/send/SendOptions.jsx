@@ -138,7 +138,7 @@ function SendOptions({ invoice, onBack }) {
             {invoiceData?.pdfUrl && (
               <button
                 onClick={handleDownload}
-                className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
+                className="text-orange-600 hover:text-orange-800 flex items-center text-sm"
               >
                 <DownloadIcon className="w-4 h-4 mr-1" />
                 {isDownloading ? "Downloading..." : "Download Invoice"}
@@ -179,21 +179,21 @@ function SendOptions({ invoice, onBack }) {
                     onClick={() => setSendMethod("email")}
                     className={`flex items-center w-full p-3 border rounded-md ${
                       sendMethod === "email"
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900"
-                        : "border-gray-300 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700"
+                        ? "border-orange-500 bg-orange-50 dark:bg-orange-900"
+                        : "border-gray-300 dark:border-gray-600 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-gray-700"
                     }`}
                   >
                     <div
                       className={`p-2 rounded-full mr-4 ${
                         sendMethod === "email"
-                          ? "bg-blue-100"
+                          ? "bg-orange-100"
                           : "bg-gray-100 dark:bg-gray-700"
                       }`}
                     >
                       <MailIcon
                         className={`w-5 h-5 ${
                           sendMethod === "email"
-                            ? "text-blue-600"
+                            ? "text-orange-600"
                             : "text-gray-500 dark:text-gray-400"
                         }`}
                       />
@@ -207,7 +207,7 @@ function SendOptions({ invoice, onBack }) {
                       </p>
                     </div>
                     {sendMethod === "email" && (
-                      <CheckIcon className="w-5 h-5 text-blue-600" />
+                      <CheckIcon className="w-5 h-5 text-orange-600" />
                     )}
                   </button>
 
@@ -244,7 +244,7 @@ function SendOptions({ invoice, onBack }) {
                       </p>
                     </div>
                     {sendMethod === "whatsapp" && (
-                      <CheckIcon className="w-5 h-5 text-blue-600" />
+                      <CheckIcon className="w-5 h-5 text-orange-600" />
                     )}
                   </button>
                 </div>
@@ -322,7 +322,7 @@ function SendOptions({ invoice, onBack }) {
                     (sendMethod === "whatsapp" && !phone) ||
                     isSending
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-orange-600 text-white hover:bg-orange-700"
                   }`}
                 >
                   {isSending ? "Sending..." : "Send Invoice"}

@@ -95,7 +95,7 @@ const Crm = () => {
           <h1 className="text-3xl font-bold">Email Templates</h1>
           <button
             onClick={() => openModal()}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+            className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition"
           >
             <PlusCircle className="w-5 h-5" />
             <span>Create Template</span>
@@ -113,12 +113,12 @@ const Crm = () => {
                 {template.description}
               </p>
               <div className="flex justify-between items-center">
-                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full">
+                <span className="text-xs px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400 rounded-full">
                   {template.category}
                 </span>
                 <button
                   onClick={() => openModal(template)}
-                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  className="text-sm text-orange-600 hover:text-orange-800 flex items-center gap-1"
                 >
                   <Pencil className="w-4 h-4" /> Edit
                 </button>
@@ -159,7 +159,7 @@ const Crm = () => {
             <RichTextEditor value={content} onChange={setContent} />
             <button
               onClick={handleSave}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700"
             >
               Save Template
             </button>
