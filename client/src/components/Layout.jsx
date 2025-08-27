@@ -24,7 +24,7 @@ function Layout() {
     { path: "/dashboard/upload", label: "New Invoice", icon: FileTextIcon },
     { path: "/dashboard/templates", label: "Templates", icon: BoxIcon },
     { path: "/dashboard/invoices", label: "All Invoices", icon: FilesIcon },
-    { path: "/dashboard/crm", label: "CRM", icon: Users },
+    // { path: "/dashboard/crm", label: "CRM", icon: Users },
     { path: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
   ];
 
@@ -41,7 +41,11 @@ function Layout() {
         <img src={logo} alt="logo" className="h-6 dark:hidden" />
         <img src={darklogo} alt="logo" className="h-6 hidden dark:block" />
         <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-          {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {sidebarOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
         </button>
       </div>
 
