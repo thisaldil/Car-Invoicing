@@ -6,12 +6,10 @@ import {
   Navigate,
   useNavigate,
 } from "react-router-dom";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
-import InvoiceUpload from "./components/invoice/InvoiceUpload.jsx";
-import InvoicePreview from "./components/invoice/InvoicePreview.jsx";
 import TemplateManager from "./components/templates/TemplateManager.jsx";
 import TemplateEditor from "./components/templates/TemplateEditor.jsx";
 import SendOptions from "./components/send/SendOptions.jsx";
@@ -72,30 +70,19 @@ function AppWrapper() {
         <Route path="/dashboard" element={<Layout />}>
           <Route index element={<Dashboard />} />
 
+          {/* Upload goes directly to CarInvoiceForm */}
           <Route
             path="upload"
             element={
-              <InvoiceUpload
-                onUpload={(invoice) => {
+              <CarInvoiceForm
+                onSave={(invoice) => {
                   setUploadedInvoice(invoice);
-                  navigate("/dashboard/preview");
+                  navigate("/dashboard/templates");
                 }}
-              />
-            }
-          />
-
-          <Route
-            path="preview"
-            element={
-              <InvoicePreview
-                invoice={uploadedInvoice}
-                onContinue={() => navigate("/dashboard/templates")}
-                onBack={() => navigate("/dashboard/upload")}
-                onEdit={(field, value) => {
-                  setUploadedInvoice((prev) => ({
-                    ...prev,
-                    [field]: value,
-                  }));
+                onBack={() => navigate("/dashboard")}
+                onContinue={(invoice) => {
+                  setUploadedInvoice(invoice);
+                  navigate("/dashboard/templates");
                 }}
               />
             }
