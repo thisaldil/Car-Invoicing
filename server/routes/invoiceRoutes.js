@@ -58,8 +58,8 @@ router.get(
   invoiceController.getInvoiceDetailsByInvoiceId
 );
 router.delete("/deleteInvoice/:invoiceId", invoiceController.deleteInvoice);
-router.get("/all", invoiceController.getAllInvoices);
-router.get("/recent", invoiceController.getMostRecentInvoices);
+// router.get("/all", invoiceController.getAllInvoices);
+// router.get("/recent", invoiceController.getMostRecentInvoices);
 
 // Get this month's invoices
 router.get("/month", ensureLoggedIn(), invoiceController.getMonthlyInvoices);
