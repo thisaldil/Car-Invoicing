@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { SearchIcon, TrashIcon } from "lucide-react";
-import toast from "react-hot-toast";
+import toast from 'react-hot-toast';
 
 const AllInvoices = ({ setGeneratedInvoice }) => {
   const [invoices, setInvoices] = useState([]);
@@ -16,7 +16,7 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
     const fetchInvoices = async () => {
       try {
         const res = await axios.get(
-          `https://car-invoicing.vercel.app/invoice/getInvoiceDetailsByUserId/${userId}`
+          `https://air-invoice-server.vercel.app/invoice/getInvoiceDetailsByUserId/${userId}`
         );
         const sortedInvoices = res.data.sort(
           (a, b) => new Date(b.date) - new Date(a.date)
@@ -39,11 +39,7 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
         bookingRefCounts[ref] = (bookingRefCounts[ref] || 0) + 1;
       }
     });
-    setDuplicateRefs(
-      new Set(
-        Object.keys(bookingRefCounts).filter((ref) => bookingRefCounts[ref] > 1)
-      )
-    );
+    setDuplicateRefs(new Set(Object.keys(bookingRefCounts).filter(ref => bookingRefCounts[ref] > 1)));
   }, [invoices]);
 
   useEffect(() => {
@@ -96,7 +92,7 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
     if (window.confirm("Are you sure you want to delete this invoice?")) {
       try {
         await axios.delete(
-          `https://car-invoicing.vercel.app/invoice/deleteInvoice/${invoiceId}`
+          `https://air-invoice-server.vercel.app/invoice/deleteInvoice/${invoiceId}`
         );
         setInvoices((prev) =>
           prev.filter((invoice) => invoice._id !== invoiceId)
@@ -172,20 +168,14 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
                       <p className="font-semibold text-gray-800">{name}</p>
                       <p className="text-gray-500 mb-2">
                         <strong>Passport No:</strong>{" "}
-                        {invoice.invoiceDetails.passengers?.[idx]
-                          ?.passportNumber || "--"}
+                        {invoice.invoiceDetails.passengers?.[idx]?.passportNumber || "--"}
                       </p>
-                      {idx <
-                        invoice.invoiceDetails.passengerName.length - 1 && (
-                        <hr />
-                      )}
+                      {idx < invoice.invoiceDetails.passengerName.length - 1 && <hr />}
                     </div>
                   ))
                 ) : (
                   <>
-                    <p className="font-semibold text-gray-800">
-                      {invoice.invoiceDetails.passengerName}
-                    </p>
+                    <p className="font-semibold text-gray-800">{invoice.invoiceDetails.passengerName}</p>
                     <p className="text-gray-500">
                       <strong>Passport No:</strong>{" "}
                       {invoice.invoiceDetails.passportNumber || "--"}
@@ -195,12 +185,12 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
               </div>
               <div className="mt-3 border-t justify-between items-center w-full">
                 <p>Invoice ID: {invoice._id}</p>
+
               </div>
             </div>
             {duplicateRefs.has(invoice.invoiceDetails?.bookingReference) && (
               <div className="absolute bottom-2 right-2 bg-yellow-100 border border-yellow-400 text-yellow-700 text-xs font-medium px-2 py-1 rounded shadow-sm">
-                ⚠ Duplicate booking
-                <br />
+                ⚠ Duplicate booking<br />
                 Ref: {invoice.invoiceDetails?.bookingReference}
               </div>
             )}

@@ -7,7 +7,7 @@ import {
   ArrowLeftIcon,
   CheckIcon,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import toast from 'react-hot-toast';
 
 function SendOptions({ invoice, onBack }) {
   const [invoiceData, setInvoiceData] = useState(null);
@@ -24,7 +24,7 @@ function SendOptions({ invoice, onBack }) {
     const fetchInvoice = async () => {
       try {
         const res = await axios.get(
-          `https://car-invoicing.vercel.app/invoice/getInvoiceDetailsByInvoiceId/${invoice.invoiceId}`
+          `https://air-invoice-server.vercel.app/invoice/getInvoiceDetailsByInvoiceId/${invoice.invoiceId}`
         );
         setInvoiceData(res.data);
       } catch (err) {
@@ -41,13 +41,10 @@ function SendOptions({ invoice, onBack }) {
     setIsSending(true);
     try {
       if (sendMethod === "email") {
-        await axios.post(
-          "https://car-invoicing.vercel.app/invoice/sendInvoiceEmail",
-          {
-            email,
-            pdfUrl: invoiceData?.pdfUrl,
-          }
-        );
+        await axios.post("https://air-invoice-server.vercel.app/invoice/sendInvoiceEmail", {
+          email,
+          pdfUrl: invoiceData?.pdfUrl,
+        });
       }
       if (sendMethod === "whatsapp") {
         const message = `Dear Customer,\n\nThis is ${invoice.template.company.name}. Please find your invoice below:\n\n${invoiceData?.pdfUrl}\n\nThank you for your business.`;
@@ -75,9 +72,8 @@ function SendOptions({ invoice, onBack }) {
       const url = window.URL.createObjectURL(blob);
 
       // Create meaningful filename with booking reference and date
-      const bookingRef =
-        invoiceData?.invoiceDetails.bookingReference || "DRAFT";
-      const currentDate = new Date().toISOString().split("T")[0];
+      const bookingRef = invoiceData?.invoiceDetails.bookingReference || 'DRAFT';
+      const currentDate = new Date().toISOString().split('T')[0];
       const fileName = `${bookingRef}-invoice-${currentDate}.pdf`;
 
       const a = document.createElement("a");

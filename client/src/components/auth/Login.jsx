@@ -19,14 +19,11 @@ const Login = () => {
 
   const handleSuccess = async (response) => {
     try {
-      const res = await fetch(
-        "https://car-invoicing.vercel.app/auth/google/callback",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: response.credential }),
-        }
-      );
+      const res = await fetch("https://air-invoice-server.vercel.app/auth/google/callback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: response.credential }),
+      });
 
       if (res.status === 404) {
         localStorage.removeItem("token");

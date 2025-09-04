@@ -21,14 +21,11 @@ const Register = () => {
     try {
       const token = response.credential;
 
-      const verify = await fetch(
-        "https://car-invoicing.vercel.app/auth/google/register",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        }
-      );
+      const verify = await fetch("https://air-invoice-server.vercel.app/auth/google/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
 
       if (!verify.ok) {
         const msg = await verify.json();
@@ -83,8 +80,8 @@ const Register = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-xl leading-relaxed font-medium text-center max-w-lg text-gray-700"
             >
-              Join AirInvoice Pro to manage your invoices with ease. Automate,
-              track, and send invoices effortlessly.
+              Join AirInvoice Pro to manage your invoices with ease. Automate, track,
+              and send invoices effortlessly.
             </motion.p>
           </div>
         </div>
@@ -98,7 +95,9 @@ const Register = () => {
             className="bg-white p-10 rounded-lg shadow-xl text-center w-full max-w-sm"
           >
             <h1 className="text-3xl font-bold text-gray-800 mb-6">Register</h1>
-            <GoogleLogin onSuccess={handleSuccess} />
+            <GoogleLogin
+              onSuccess={handleSuccess}
+            />
             <div className="mt-6 text-sm text-gray-600">
               Already have an account?{" "}
               <Link to="/login" className="text-orange-500 hover:underline">
