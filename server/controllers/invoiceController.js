@@ -199,7 +199,7 @@ exports.sendInvoiceEmail = async (req, res) => {
 };
 
 //delete template by id
-exports.getRecentInvoicesdeleteInvoice = async (req, res) => {
+exports.deleteInvoice = async (req, res) => {
   try {
     const invoice = await Invoice.findByIdAndDelete(req.params.invoiceId);
     if (!invoice) {
