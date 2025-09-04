@@ -56,9 +56,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
     if (id) {
       setIsEditing(true);
       axios
-        .get(
-          `https://air-invoice-server.vercel.app/template/getTemplateById/${id}`
-        )
+        .get(`https://car-invoicing.vercel.app/template/getTemplateById/${id}`)
         .then((res) => {
           const t = res.data;
           setTemplateName(t.name);
@@ -80,7 +78,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
   const checkDuplicateInvoice = async (userId, bookingRef) => {
     try {
       const { data } = await axios.get(
-        `https://air-invoice-server.vercel.app/invoice/getInvoiceDetailsByUserId/${userId}`
+        `https://car-invoicing.vercel.app/invoice/getInvoiceDetailsByUserId/${userId}`
       );
       return (
         Array.isArray(data) &&
@@ -169,7 +167,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         const cloudinaryUrl = cloudinaryRes.data.secure_url;
 
         const saveInvoiceRes = await axios.post(
-          "https://air-invoice-server.vercel.app/invoice/saveInvoiceDetails",
+          "https://car-invoicing.vercel.app/invoice/saveInvoiceDetails",
           {
             userId,
             pdfUrl: cloudinaryUrl,
@@ -206,13 +204,13 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
       let response;
       if (isEditing) {
         response = await axios.put(
-          `https://air-invoice-server.vercel.app/template/updateTemplate/${id}`,
+          `https://car-invoicing.vercel.app/template/updateTemplate/${id}`,
           updatedTemplate
         );
         toast.success("Template updated successfully!");
       } else {
         response = await axios.post(
-          "https://air-invoice-server.vercel.app/template/createTemplate",
+          "https://car-invoicing.vercel.app/template/createTemplate",
           updatedTemplate
         );
         toast.success("Template created successfully!");
