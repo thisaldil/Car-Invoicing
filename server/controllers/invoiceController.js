@@ -317,3 +317,19 @@ exports.getMonthlyRevenue = async (req, res) => {
     res.status(500).json({ error: "Failed to calculate monthly revenue" });
   }
 };
+// get all invoices (optionally scoped to a user)
+exports.getAllInvoices = async (req, res) => {
+  try {
+    // if you want all: const filter = {};
+    // if you want per-user and you have req.user: const filter = { userId: req.user._id };
+    const filter = {};
+    const invoices = await Invoice.find(filter).sort({ createdAt: -1 });
+    res.status(200).json(invoices);
+  } catch (err) {
+    console.error("Error fetching all invoices:", err);
+    res.status(500).json({ error: "Failed to fetch invoices" });
+  }
+};
+
+// most recent (alias to your recent handler)
+exports.getMostRecentInvoices = exports.getRecentInvoices;
