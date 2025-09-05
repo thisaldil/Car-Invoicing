@@ -21,7 +21,7 @@ function Dashboard() {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     setUser(storedUser);
 
-    fetch("https://air-invoice-server.vercel.app/invoice/recent", {
+    fetch("https://car-invoicing.vercel.app/invoice/recent", {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -45,7 +45,7 @@ function Dashboard() {
         console.error("Failed to load recent invoices", err);
       });
 
-    fetch("https://air-invoice-server.vercel.app/invoice/month", {
+    fetch("https://car-invoicing.vercel.app/invoice/month", {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -56,7 +56,7 @@ function Dashboard() {
         console.error("Failed to load monthly invoices", err);
       });
 
-    fetch("https://air-invoice-server.vercel.app/invoice/month/revenue", {
+    fetch("https://car-invoicing.vercel.app/invoice/month/revenue", {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -83,14 +83,13 @@ function Dashboard() {
               src={
                 user?.picture
                   ? user.picture
-                    .replace("=s96-c", "")
-                    .replace("http://", "https://")
+                      .replace("=s96-c", "")
+                      .replace("http://", "https://")
                   : "/default-avatar.png"
               }
               alt={user?.name || "User"}
               className="w-10 h-10 object-cover rounded-full border border-gray-300"
             />
-
           </div>
         )}
       </div>
@@ -175,10 +174,11 @@ function Dashboard() {
                   </td>
                   <td className="py-4 px-4">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${invoice.status === "Sent"
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        invoice.status === "Sent"
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
                           : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                        }`}
+                      }`}
                     >
                       {invoice.status}
                     </span>
@@ -228,10 +228,11 @@ function Dashboard() {
                 {stat.value}
               </h3>
               <span
-                className={`text-sm ${stat.change.startsWith("+")
+                className={`text-sm ${
+                  stat.change.startsWith("+")
                     ? "text-green-600 dark:text-green-400"
                     : "text-red-600 dark:text-red-400"
-                  }`}
+                }`}
               >
                 {stat.change}
               </span>

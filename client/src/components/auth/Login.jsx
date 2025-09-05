@@ -19,11 +19,14 @@ const Login = () => {
 
   const handleSuccess = async (response) => {
     try {
-      const res = await fetch("https://air-invoice-server.vercel.app/auth/google/callback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: response.credential }),
-      });
+      const res = await fetch(
+        "https://car-invoicing.vercel.app/auth/google/callback",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: response.credential }),
+        }
+      );
 
       if (res.status === 404) {
         localStorage.removeItem("token");
@@ -105,7 +108,7 @@ const Login = () => {
             />
             <div className="mt-6 text-sm text-gray-600">
               Don&apos;t have an account?{" "}
-              <Link to="/register" className="text-orange-500 hover:underline">
+              <Link to="/register" className="text-blue-500 hover:underline">
                 Register here
               </Link>
             </div>
