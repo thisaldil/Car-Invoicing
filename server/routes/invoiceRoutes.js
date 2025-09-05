@@ -61,13 +61,13 @@ router.delete("/deleteInvoice/:invoiceId", invoiceController.deleteInvoice);
 router.get("/recent", invoiceController.getRecentInvoices);
 
 // Get this month's invoices
-router.get("/month", ensureLoggedIn(), invoiceController.getMonthlyInvoices);
+// router.get("/month", ensureLoggedIn(), invoiceController.getMonthlyInvoices);
 
-// Get this month's total revenue
-router.get(
-  "/month/revenue",
-  ensureLoggedIn(),
-  invoiceController.getMonthlyRevenue
-);
+// // Get this month's total revenue
+// router.get(
+//   "/month/revenue",
+//   ensureLoggedIn(),
+//   invoiceController.getMonthlyRevenue
+// );
 
 module.exports = router;
