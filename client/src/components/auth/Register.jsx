@@ -58,9 +58,7 @@ const Register = () => {
   };
 
   return (
-    <GoogleOAuthProvider
-      clientId={process.env.NEXT_PUBLIC_NEXT_PUBLIC_GOOGLE_CLIENT_ID}
-    >
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
       <div
         style={{
           backgroundImage: `url(${bg})`,
