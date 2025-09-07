@@ -15,16 +15,16 @@ const Login = () => {
       setIsAuthenticated(true);
       navigate("/dashboard");
     }
-  }, []);
+  }, [navigate]);
 
   const handleSuccess = async (response) => {
     try {
       const res = await fetch(
-        "https://car-invoicing.vercel.app/auth/google/callback",
+        "https://car-invoicing.vercel.app/auth/google/token",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: response.credential }),
+          body: JSON.stringify({ token: response.credential }), // matches your controller
         }
       );
 
@@ -37,7 +37,6 @@ const Login = () => {
       }
 
       if (!res.ok) throw new Error("Failed to authenticate");
-
       const data = await res.json();
 
       if (data.token) {
@@ -61,7 +60,7 @@ const Login = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId="663881430011-7hiqvhn33uo08sc0ti5l1fjstktaqogi.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
       <div
         style={{
           backgroundImage: `url(${bg})`,
@@ -70,7 +69,6 @@ const Login = () => {
         }}
         className="relative flex h-screen w-full overflow-hidden bg-gray-100"
       >
-        {/* Right Side (Login Box) */}
         <div className="hidden md:block absolute left-0 top-0 h-full w-1/2 text-white z-0">
           <div className="flex flex-col justify-center items-center h-full px-12">
             <motion.img
@@ -93,7 +91,6 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Left Side (Form) */}
         <div className="w-full md:w-1/2 z-10 flex justify-center items-center ml-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

@@ -1,18 +1,13 @@
-const express = require("express");
-const passport = require("passport");
-const authController = require("../controllers/authController");
-const router = express.Router();
+const router = require("express").Router();
+const {
+  handleGoogleToken,
+  handleGoogleRegister,
+} = require("../controllers/authController");
 
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+// GIS ID-token login
+router.post("/google/token", handleGoogleToken);
 
-router.get(
-  "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/" }),
-  authController.handleGoogleRedirect
-);
-
-router.post("/google/callback", authController.handleGoogleToken);
-
-router.post("/google/register", authController.handleGoogleRegister);
+// GIS ID-token register (optional)
+router.post("/google/register", handleGoogleRegister);
 
 module.exports = router;

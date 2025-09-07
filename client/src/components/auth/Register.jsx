@@ -15,29 +15,30 @@ const Register = () => {
       setIsAuthenticated(true);
       navigate("/dashboard");
     }
-  }, []);
+  }, [navigate]);
 
   const handleSuccess = async (response) => {
     try {
-      const token = response.credential;
-
-      const verify = await fetch(
+      const res = await fetch(
         "https://car-invoicing.vercel.app/auth/google/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ token: response.credential }),
         }
       );
 
-      if (!verify.ok) {
-        const msg = await verify.json();
-        toast.error("Registration failed. Please try again.");
+      if (!res.ok) {
+        const msg = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          toast.error("User already exists. Try logging in.");
+        } else {
+          toast.error(msg.message || "Registration failed. Please try again.");
+        }
         return;
       }
 
-      const data = await verify.json();
-
+      const data = await res.json();
       if (data.token) {
         localStorage.setItem("token", data.token);
         localStorage.setItem(
@@ -57,7 +58,9 @@ const Register = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId="536656085214-lflgf5vpabtlh57mt6jj5f4v2qpdu6o0.apps.googleusercontent.com">
+    <GoogleOAuthProvider
+      clientId={process.env.NEXT_PUBLIC_NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+    >
       <div
         style={{
           backgroundImage: `url(${bg})`,
@@ -66,7 +69,6 @@ const Register = () => {
         }}
         className="relative flex h-screen w-full overflow-hidden bg-gray-100"
       >
-        {/* Left Side (Branding) */}
         <div className="hidden md:block absolute left-0 top-0 h-full w-1/2 text-white z-0">
           <div className="flex flex-col justify-center items-center h-full px-12">
             <motion.img
@@ -89,7 +91,6 @@ const Register = () => {
           </div>
         </div>
 
-        {/* Right Side (Form) */}
         <div className="w-full md:w-1/2 z-10 flex justify-center items-center ml-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -98,7 +99,10 @@ const Register = () => {
             className="bg-white p-10 rounded-lg shadow-xl text-center w-full max-w-sm"
           >
             <h1 className="text-3xl font-bold text-gray-800 mb-6">Register</h1>
-            <GoogleLogin onSuccess={handleSuccess} />
+            <GoogleLogin
+              onSuccess={handleSuccess}
+              onError={() => console.error("Google Register Failed")}
+            />
             <div className="mt-6 text-sm text-gray-600">
               Already have an account?{" "}
               <Link to="/login" className="text-orange-500 hover:underline">
