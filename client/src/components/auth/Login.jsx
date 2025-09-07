@@ -61,7 +61,7 @@ const Login = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId="536656085214-lflgf5vpabtlh57mt6jj5f4v2qpdu6o0.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="663881430011-7hiqvhn33uo08sc0ti5l1fjstktaqogi.apps.googleusercontent.com">
       <div
         style={{
           backgroundImage: `url(${bg})`,
