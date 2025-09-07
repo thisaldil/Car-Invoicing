@@ -2,7 +2,7 @@ const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-const client = new OAuth2Client(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(process.env.REACT_APP_GOOGLE_CLIENT_ID);
 
 const createUser = async (payload) => {
   const googleId = payload.sub;
@@ -44,7 +44,7 @@ const handleGoogleToken = async (req, res) => {
 
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      audience: process.env.REACT_APP_GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
@@ -86,7 +86,7 @@ const handleGoogleRegister = async (req, res) => {
 
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      audience: process.env.REACT_APP_GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
