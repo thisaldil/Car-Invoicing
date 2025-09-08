@@ -1,30 +1,42 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
 const connectDB = require("../database");
 const crypto = require("crypto");
 
 const app = express();
 
-app.use(
-  cors({
-    origin: [
-      "https://car-invoicing-client.vercel.app",
-      "http://localhost:3000",
-      "http://localhost:5173",
-    ],
-    credentials: true,
-  })
-);
 app.use(express.json());
+
+// ---- CORS (handles preflight + all responses) ----
+const allowed = new Set([
+  "https://car-invoicing-client.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:5173",
+]);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowed.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") return res.status(204).end();
+  next();
+});
 
 // models
 require("../models/User");
 
 // routes
-app.get("/", (req, res) => res.send("Car Invoicing API is running"));
-app.get("/health", (req, res) => res.json({ ok: true }));
-app.get(["/favicon.ico", "/favicon.png"], (req, res) => res.status(204).end());
+app.get("/", (_req, res) => res.send("Car Invoicing API is running"));
+app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get(["/favicon.ico", "/favicon.png"], (_req, res) => res.status(204).end());
 
 app.use("/auth", require("../routes/authRoutes"));
 app.use("/user", require("../routes/userRoutes"));
@@ -32,7 +44,7 @@ app.use("/template", require("../routes/templateRoutes"));
 app.use("/invoice", require("../routes/invoiceRoutes"));
 app.use("/ocr", require("../routes/ocrRoutes"));
 
-// cloudinary signature (unchanged)
+// cloudinary signature
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 app.post("/generate-signature", (req, res) => {
   try {
@@ -49,6 +61,10 @@ app.post("/generate-signature", (req, res) => {
   }
 });
 
-connectDB().catch((err) => console.error("MongoDB connection error:", err));
+// connect DB once at cold start
+connectDB().catch((err) =>
+  console.error("MongoDB connection error:", err.message)
+);
 
+// Vercel handler
 module.exports = (req, res) => app(req, res);

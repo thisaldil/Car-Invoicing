@@ -2,6 +2,7 @@ const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+// keep the same env var name you’re using on the server
 const client = new OAuth2Client(process.env.REACT_APP_GOOGLE_CLIENT_ID);
 
 const createUser = async (payload) => {
@@ -30,16 +31,20 @@ const handleGoogleRedirect = async (req, res) => {
 
   await User.findByIdAndUpdate(req.user._id, { token });
 
-  res
+  return res
     .status(200)
     .json({ message: "Authentication successful", user: req.user, token });
 };
 
 const handleGoogleToken = async (req, res) => {
   try {
+    // same request shape: { token }
     const { token } = req.body;
-    if (!token) {
-      return res.status(400).json({ message: "Token missing" });
+    if (!token) return res.status(400).json({ message: "Token missing" });
+
+    // use the same env var you chose
+    if (!process.env.REACT_APP_GOOGLE_CLIENT_ID) {
+      return res.status(500).json({ message: "Internal Server Error" }); // keep message style
     }
 
     const ticket = await client.verifyIdToken({
@@ -50,11 +55,8 @@ const handleGoogleToken = async (req, res) => {
     const payload = ticket.getPayload();
     const googleId = payload.sub;
 
-    let user = await User.findOne({ googleId });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const user = await User.findOne({ googleId });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "24h",
@@ -62,7 +64,7 @@ const handleGoogleToken = async (req, res) => {
 
     await User.findByIdAndUpdate(user._id, { token: jwtToken });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Authentication successful",
       user: {
         googleId: user.googleId,
@@ -74,8 +76,9 @@ const handleGoogleToken = async (req, res) => {
       userId: user._id,
     });
   } catch (error) {
-    console.error("Google Token Handling Error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    // invalid / expired id_token should be 401, not 500
+    console.error("Google Token Handling Error:", error?.message || error);
+    return res.status(401).json({ message: "Internal Server Error" }); // message preserved
   }
 };
 
@@ -84,15 +87,26 @@ const handleGoogleRegister = async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(400).json({ message: "Token missing" });
 
+    if (!process.env.REACT_APP_GOOGLE_CLIENT_ID) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.REACT_APP_GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
-    const existingUser = await User.findOne({ googleId: payload.sub });
 
+    // same checks, same messages
+    const existingUser = await User.findOne({ googleId: payload.sub });
     if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
+    }
+
+    // avoid duplicate key on email if unique index exists
+    const existingByEmail = await User.findOne({ email: payload.email });
+    if (existingByEmail) {
       return res.status(409).json({ message: "User already exists" });
     }
 
@@ -108,7 +122,7 @@ const handleGoogleRegister = async (req, res) => {
     });
     await User.findByIdAndUpdate(user._id, { token: jwtToken });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Registration successful",
       user: {
         googleId: user.googleId,
@@ -120,8 +134,12 @@ const handleGoogleRegister = async (req, res) => {
       userId: user._id,
     });
   } catch (error) {
-    console.error("Google Register Error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    // send 409 if Mongo throws duplicate key anyway
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: "User already exists" });
+    }
+    console.error("Google Register Error:", error?.message || error);
+    return res.status(401).json({ message: "Internal Server Error" }); // keep message format
   }
 };
 
