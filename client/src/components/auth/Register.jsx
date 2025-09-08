@@ -52,7 +52,7 @@ const Register = () => {
             picture: data.user.picture,
           })
         );
-        toast.success("Registration successful! Welcome to AirInvoice Pro!");
+        toast.success("Registration successful! Welcome to CarInvoicing Pro!");
         navigate("/dashboard");
       }
     } catch (error) {

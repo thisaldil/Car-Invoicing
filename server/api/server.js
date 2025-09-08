@@ -46,6 +46,7 @@ app.use((req, res, next) => {
 
   next();
 });
+console.log("BE CID:", process.env.REACT_APP_GOOGLE_CLIENT_ID);
 
 // models
 require("../models/User");
