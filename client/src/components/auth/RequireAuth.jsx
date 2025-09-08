@@ -2,30 +2,54 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 
-function isTokenValid(token) {
-  if (!token) return false;
+function decodeJwtExp(token) {
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return (
-      typeof payload.exp === "number" && payload.exp * 1000 > Date.now() + 30000
-    );
+    const part = token.split(".")[1];
+    // base64url -> base64
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(b64);
+    const payload = JSON.parse(json);
+    return typeof payload.exp === "number" ? payload.exp : null; // seconds
   } catch {
-    return false;
+    return null;
   }
 }
 
 export default function RequireAuth({ children }) {
-  const [checked, setChecked] = useState(false);
-  const [ok, setOk] = useState(false);
+  const [state, setState] = useState({ checked: false, ok: false });
 
   useEffect(() => {
-    const t = localStorage.getItem("token");
-    setOk(isTokenValid(t));
-    setChecked(true);
+    (async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return setState({ checked: true, ok: false });
+
+      // 1) Local check: exp not expired (allow 30s skew)
+      const exp = decodeJwtExp(token);
+      if (exp && exp * 1000 <= Date.now() + 30_000) {
+        return setState({ checked: true, ok: false });
+      }
+
+      // 2) Server check: prove token works on API
+      try {
+        const res = await fetch("https://car-invoicing.vercel.app/user/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setState({ checked: true, ok: res.ok });
+      } catch {
+        setState({ checked: true, ok: false });
+      }
+    })();
   }, []);
 
-  if (!checked) return <div className="p-6 text-gray-600">Loading…</div>;
-  if (!ok) return <Navigate to="/login" replace />;
-
+  if (!state.checked) {
+    return <div className="p-6 text-gray-600">Loading…</div>;
+  }
+  if (!state.ok) {
+    // clean up stale token so we don't loop
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+    return <Navigate to="/login" replace />;
+  }
   return children;
 }

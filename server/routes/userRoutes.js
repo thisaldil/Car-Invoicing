@@ -5,8 +5,32 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+// -------- add this middleware ----------
+const authRequired = (req, res, next) => {
+  const auth = req.headers.authorization || "";
+  const [, token] = auth.split(" ");
+  if (!token) return res.status(401).json({ message: "missing_token" });
+  try {
+    const dec = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = dec.id;
+    next();
+  } catch {
+    return res.status(401).json({ message: "invalid_token" });
+  }
+};
+// ---------------------------------------
+
 router.get("/getUserDetails/:userId", userController.getUserDetails);
-// POST /user/register  { name, email, password }
+
+// -------- add this route ----------
+router.get("/me", authRequired, async (req, res) => {
+  const u = await User.findById(req.userId).lean();
+  if (!u) return res.status(404).json({ message: "user_not_found" });
+  res.json({ user: { name: u.name, email: u.email, picture: u.picture } });
+});
+// -----------------------------------
+
+// POST /user/register
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body || {};
@@ -18,7 +42,6 @@ router.post("/register", async (req, res) => {
       return res.status(409).json({ message: "user_already_exists" });
     }
 
-    // If the email exists via Google only, allow attaching a local password
     let user = existing;
     const hash = await bcrypt.hash(password, 12);
 
@@ -57,7 +80,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// POST /user/login  { email, password }
+// POST /user/login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body || {};
@@ -67,7 +90,6 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "user_not_found" });
 
-    // If it's a Google-only account without a local password
     if (!user.passwordHash) {
       return res.status(409).json({ message: "use_google_or_set_password" });
     }
