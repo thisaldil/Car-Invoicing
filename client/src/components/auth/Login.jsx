@@ -9,13 +9,18 @@ const Login = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // read the same env you already use
+  const FE_CID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
   useEffect(() => {
+    // quick visibility to confirm FE client id at runtime
+    console.log("FE CID:", FE_CID);
     const token = localStorage.getItem("token");
     if (token) {
       setIsAuthenticated(true);
       navigate("/dashboard");
     }
-  }, [navigate]);
+  }, [navigate, FE_CID]);
 
   const handleSuccess = async (response) => {
     try {
@@ -24,19 +29,25 @@ const Login = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: response.credential }), // matches your controller
+          body: JSON.stringify({ token: response.credential }),
         }
       );
 
-      if (res.status === 404) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        sessionStorage.clear();
-        toast.info("Account not registered. Please register first.");
+      // log error text so we see why it failed (e.g., invalid_id_token)
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        console.error("Auth failed:", res.status, text);
+        if (res.status === 404) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          sessionStorage.clear();
+          toast.info("Account not registered. Please register first.");
+          return;
+        }
+        toast.error("Login failed. Please try again.");
         return;
       }
 
-      if (!res.ok) throw new Error("Failed to authenticate");
       const data = await res.json();
 
       if (data.token) {
@@ -59,8 +70,20 @@ const Login = () => {
     }
   };
 
+  // If FE client id is missing, show a clear message instead of a broken button
+  if (!FE_CID) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-600 font-medium">
+          Google sign-in is not configured. Set REACT_APP_GOOGLE_CLIENT_ID and
+          redeploy the client.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={FE_CID}>
       <div
         style={{
           backgroundImage: `url(${bg})`,
