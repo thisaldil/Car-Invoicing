@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 // keep the same env var name you’re using on the server
-const client = new OAuth2Client(process.env.REACT_APP_GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const createUser = async (payload) => {
   const googleId = payload.sub;
@@ -43,13 +43,13 @@ const handleGoogleToken = async (req, res) => {
     if (!token) return res.status(400).json({ message: "Token missing" });
 
     // use the same env var you chose
-    if (!process.env.REACT_APP_GOOGLE_CLIENT_ID) {
+    if (!process.env.GOOGLE_CLIENT_ID) {
       return res.status(500).json({ message: "Internal Server Error" }); // keep message style
     }
 
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
@@ -87,13 +87,13 @@ const handleGoogleRegister = async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(400).json({ message: "Token missing" });
 
-    if (!process.env.REACT_APP_GOOGLE_CLIENT_ID) {
+    if (!process.env.GOOGLE_CLIENT_ID) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
 
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
