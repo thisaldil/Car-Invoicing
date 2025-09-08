@@ -5,7 +5,7 @@ const fs = require("fs");
 const router = express.Router();
 const invoiceController = require("../controllers/invoiceController");
 const ticketController = require("../controllers/ticketController");
-
+const authRequired = require("../middlewares/authRequired");
 // Use /tmp/uploads for Vercel compatibility
 const uploadDir = "/tmp/uploads";
 if (!fs.existsSync(uploadDir)) {
