@@ -23,7 +23,10 @@ const Register = () => {
         "https://car-invoicing.vercel.app/auth/google/register",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // This is crucial for CORS with your server setup
           body: JSON.stringify({ token: response.credential }),
         }
       );
@@ -49,12 +52,25 @@ const Register = () => {
             picture: data.user.picture,
           })
         );
+        toast.success("Registration successful! Welcome to AirInvoice Pro!");
         navigate("/dashboard");
       }
     } catch (error) {
       console.error("Google Registration Error:", error);
-      toast.error("Registration failed. Please try again.");
+      // More specific error handling
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
+        toast.error(
+          "Connection error. Please check your internet and try again."
+        );
+      } else {
+        toast.error("Registration failed. Please try again.");
+      }
     }
+  };
+
+  const handleError = (error) => {
+    console.error("Google OAuth Error:", error);
+    toast.error("Google authentication failed. Please try again.");
   };
 
   return (
@@ -99,7 +115,10 @@ const Register = () => {
             <h1 className="text-3xl font-bold text-gray-800 mb-6">Register</h1>
             <GoogleLogin
               onSuccess={handleSuccess}
-              onError={() => console.error("Google Register Failed")}
+              onError={handleError}
+              theme="outline"
+              size="large"
+              text="signup_with"
             />
             <div className="mt-6 text-sm text-gray-600">
               Already have an account?{" "}
