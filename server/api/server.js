@@ -7,7 +7,7 @@ const app = express();
 
 app.use(express.json());
 
-// ---- CORS (handles preflight + all responses) ----
+// ---- Enhanced CORS (handles preflight + all responses) ----
 const allowed = new Set([
   "https://car-invoicing-client.vercel.app",
   "http://localhost:3000",
@@ -16,17 +16,34 @@ const allowed = new Set([
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && allowed.has(origin)) {
+
+  // Allow requests with no origin (mobile apps, Postman, etc.)
+  if (!origin) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  } else if (allowed.has(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
   }
+
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET,POST,PUT,PATCH,DELETE,OPTIONS"
   );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.method === "OPTIONS") return res.status(204).end();
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Requested-With"
+  );
+
+  // Add headers for Google OAuth popup issues
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   next();
 });
 
@@ -59,6 +76,17 @@ app.post("/generate-signature", (req, res) => {
   } catch {
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Server error:", err);
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
 });
 
 // connect DB once at cold start
