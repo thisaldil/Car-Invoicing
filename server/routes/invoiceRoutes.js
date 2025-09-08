@@ -70,4 +70,10 @@ router.get("/recent", invoiceController.getRecentInvoices);
 //   invoiceController.getMonthlyRevenue
 // );
 
+// Example list route (protected)
+router.get("/list", authRequired, async (req, res) => {
+  // TODO: replace with real query, e.g. Invoice.find({ owner: req.userId })
+  return res.json({ invoices: [] });
+});
+
 module.exports = router;
