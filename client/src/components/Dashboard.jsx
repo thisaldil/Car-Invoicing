@@ -1,15 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { FileTextIcon, FileUpIcon, SendIcon, BoxIcon } from "lucide-react";
+import {
+  FileTextIcon,
+  FileUpIcon,
+  SendIcon,
+  BoxIcon,
+  QuoteIcon,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import avatar from "../images/default-avatar.png";
 
-function Dashboard() {
+function Dashboard({ setGeneratedInvoice }) {
+  const userId = localStorage.getItem("userId");
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-
+  const [allInvoices, setAllInvoices] = useState([]);
   const [recentInvoices, setRecentInvoices] = useState([]);
-
   const [monthlyInvoices, setMonthlyInvoices] = useState([]);
   const [monthlyRevenue, setMonthlyRevenue] = useState(0);
+  const [lastMonthInvoices, setLastMonthInvoices] = useState([]);
+  const [lastMonthRevenue, setLastMonthRevenue] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -20,53 +31,158 @@ function Dashboard() {
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
     setUser(storedUser);
-
-    fetch("https://car-invoicing.vercel.app/invoice/recent", {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const formatted = data.map((inv) => ({
-          id: inv._id,
-          customer: inv.invoiceDetails?.passengerName || "N/A",
-          passport: inv.invoiceDetails?.passportNumber || "N/A",
-          nationality: inv.invoiceDetails?.nationality || "N/A",
-          amount: inv.priceDetails?.totalAmount
-            ? `$${inv.priceDetails.totalAmount}`
-            : "N/A",
-          date: inv.createdAt
-            ? new Date(inv.createdAt).toLocaleDateString()
-            : "N/A",
-          status: "Sent",
-        }));
-        setRecentInvoices(formatted);
-      })
-      .catch((err) => {
-        console.error("Failed to load recent invoices", err);
-      });
-
-    fetch("https://car-invoicing.vercel.app/invoice/month", {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setMonthlyInvoices(data || []);
-      })
-      .catch((err) => {
-        console.error("Failed to load monthly invoices", err);
-      });
-
-    fetch("https://car-invoicing.vercel.app/invoice/month/revenue", {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setMonthlyRevenue(data.totalRevenue || 0);
-      })
-      .catch((err) => {
-        console.error("Failed to load monthly revenue", err);
-      });
   }, []);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const res = await axios.get(
+          `https://air-invoice-server.vercel.app/invoice/getAllInvoices`
+        );
+
+        const allInvoices = res.data.map((inv) => ({
+          ...inv,
+          date: inv.date
+            ? new Date(inv.date).toISOString().split("T")[0]
+            : "N/A",
+        }));
+
+        const sortedInvoices = allInvoices.sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        );
+
+        setRecentInvoices(sortedInvoices.slice(0, 5));
+
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const lastMonthYear =
+          currentMonth === 0 ? currentYear - 1 : currentYear;
+
+        const currentMonthInvoices = allInvoices.filter((inv) => {
+          const invoiceDate = new Date(inv.date);
+          return (
+            invoiceDate.getFullYear() === currentYear &&
+            invoiceDate.getMonth() === currentMonth
+          );
+        });
+
+        const lastMonthInvoicesFiltered = allInvoices.filter((inv) => {
+          const invoiceDate = new Date(inv.date);
+          return (
+            invoiceDate.getFullYear() === lastMonthYear &&
+            invoiceDate.getMonth() === lastMonth
+          );
+        });
+
+        const currentRevenue = currentMonthInvoices
+          .filter((inv) => inv.invoiceDetails?.type === "invoice")
+          .reduce(
+            (sum, inv) => sum + parseFloat(inv.priceDetails?.totalAmount || 0),
+            0
+          );
+
+        const previousRevenue = lastMonthInvoicesFiltered
+          .filter((inv) => inv.invoiceDetails?.type === "invoice")
+          .reduce(
+            (sum, inv) => sum + parseFloat(inv.priceDetails?.totalAmount || 0),
+            0
+          );
+
+        setAllInvoices(allInvoices);
+        setMonthlyInvoices(currentMonthInvoices);
+        setLastMonthInvoices(lastMonthInvoicesFiltered);
+        setMonthlyRevenue(
+          currentRevenue.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
+        setLastMonthRevenue(previousRevenue);
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to load invoices:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="p-6 space-y-10 animate-pulse">
+        <div className="flex justify-between items-center">
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded-md" />
+          <div className="flex items-center space-x-3">
+            <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded-md" />
+            <div className="h-10 w-10 bg-gray-300 dark:bg-gray-600 rounded-full" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+          <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+        </div>
+
+        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 space-y-4">
+          <div className="h-6 w-40 bg-gray-300 dark:bg-gray-600 rounded-md" />
+          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-md" />
+          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-md" />
+          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-md" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+        </div>
+      </div>
+    );
+  }
+
+  const invoiceChange =
+    lastMonthInvoices.length > 0
+      ? (
+          ((monthlyInvoices.length - lastMonthInvoices.length) /
+            lastMonthInvoices.length) *
+          100
+        ).toFixed(1)
+      : "N/A";
+
+  const revenueChange =
+    lastMonthRevenue > 0
+      ? (
+          ((parseFloat(monthlyRevenue.replace(/,/g, "")) - lastMonthRevenue) /
+            lastMonthRevenue) *
+          100
+        ).toFixed(1)
+      : "N/A";
+
+  const handleSend = (invoice) => {
+    if (!invoice) return;
+
+    setGeneratedInvoice({
+      template: {
+        _id: invoice.template?._id,
+        company: {
+          name: invoice.template?.company?.name,
+          logo: invoice.template?.company?.logo,
+          address: invoice.template?.company?.address,
+        },
+      },
+      invoiceId: invoice._id,
+      invoiceDetails: {
+        ...invoice.invoiceDetails,
+        ...invoice.priceDetails,
+        pdfUrl: invoice.pdfUrl,
+      },
+    });
+
+    navigate("/dashboard/send");
+  };
 
   return (
     <div>
@@ -85,31 +201,49 @@ function Dashboard() {
                   ? user.picture
                       .replace("=s96-c", "")
                       .replace("http://", "https://")
-                  : "/default-avatar.png"
+                  : avatar
               }
-              alt={user?.name || "User"}
-              className="w-10 h-10 object-cover rounded-full border border-gray-300"
+              alt={user.name}
+              className="w-10 h-10 object-cover rounded-full border border-gray-300 "
             />
           </div>
         )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <Link
           to={`/dashboard/upload`}
-          className="bg-orange-500 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+          className="bg-blue-500 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
         >
           <div className="flex items-center">
             <div className="bg-white bg-opacity-30 p-3 rounded-full">
               <FileUpIcon className="w-6 h-6" />
             </div>
             <div className="ml-4 text-left">
-              <h3 className="text-xl font-semibold">Upload New Invoice</h3>
+              <h3 className="text-xl font-semibold">Create a New Invoice</h3>
               <p className="text-sm text-white text-opacity-90">
                 Create a new invoice from airline ticket
               </p>
             </div>
           </div>
         </Link>
+
+        <Link
+          to={`/dashboard/quotation`}
+          className="bg-green-500 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+        >
+          <div className="flex items-center">
+            <div className="bg-white bg-opacity-30 p-3 rounded-full">
+              <QuoteIcon className="w-6 h-6" />
+            </div>
+            <div className="ml-4 text-left">
+              <h3 className="text-xl font-semibold">Create New Quatation</h3>
+              <p className="text-sm text-white text-opacity-90">
+                Create a new quatation for customers
+              </p>
+            </div>
+          </div>
+        </Link>
+
         <Link
           to={`/dashboard/templates`}
           className="bg-purple-500 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
@@ -121,38 +255,41 @@ function Dashboard() {
             <div className="ml-4 text-left">
               <h3 className="text-xl font-semibold">Manage Templates</h3>
               <p className="text-sm text-white text-opacity-90">
-                Create a new invoice from airline ticket
+                Manage the created templates
               </p>
             </div>
           </div>
         </Link>
       </div>
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8 dark:bg-gray-700 dark:text-white">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8 dark:bg-gray-800 dark:text-white">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-            Recent Invoices
+            Recent Invoices & Quotations
           </h2>
-          <button className="text-orange-500 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 text-sm font-medium">
+          <Link
+            to={"/dashboard/invoices"}
+            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+          >
             View All
-          </button>
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
               <tr className="border-b border-gray-200 dark:border-gray-600">
-                <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-300">
+                <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-white">
+                  Type
+                </th>
+                <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-white">
                   Customer
                 </th>
-                <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-300">
+                <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-white">
                   Date
                 </th>
-                <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-300">
+                <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-white">
                   Amount
                 </th>
-                <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-300">
-                  Status
-                </th>
-                <th className="py-3 px-4 text-right text-sm font-medium text-gray-500 dark:text-gray-300">
+                <th className="py-3 px-4 text-right text-sm font-medium text-gray-500 dark:text-white">
                   Actions
                 </th>
               </tr>
@@ -164,30 +301,30 @@ function Dashboard() {
                   className="border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <td className="py-4 px-4 text-sm text-gray-800 dark:text-white">
-                    {invoice.customer}
+                    {invoice.invoiceDetails.type === "invoice"
+                      ? "Invoice"
+                      : "Quotation"}
                   </td>
-                  <td className="py-4 px-4 text-sm text-gray-600 dark:text-gray-300">
+                  <td className="py-4 px-4 text-sm text-gray-800 dark:text-white">
+                    {invoice.invoiceDetails.passengerName[0]}...
+                  </td>
+                  <td className="py-4 px-4 text-sm text-gray-600 dark:text-white">
                     {invoice.date}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-800 font-medium dark:text-white">
-                    {invoice.amount}
-                  </td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        invoice.status === "Sent"
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                      }`}
-                    >
-                      {invoice.status}
-                    </span>
+                    {invoice.priceDetails.totalAmount}
                   </td>
                   <td className="py-4 px-4 text-right">
-                    <button className="text-orange-500 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 mr-3">
+                    <button
+                      onClick={() => handleSend(invoice)}
+                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
+                    >
                       <FileTextIcon className="w-4 h-4" />
                     </button>
-                    <button className="text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300">
+                    <button
+                      onClick={() => handleSend(invoice)}
+                      className="text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                    >
                       <SendIcon className="w-4 h-4" />
                     </button>
                   </td>
@@ -201,19 +338,24 @@ function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           {
-            label: "Invoices This Month",
+            label: "Invoices & Quotations This Month",
             value: `${monthlyInvoices.length}`,
-            change: "+12%", // Optional: Replace with real-time trend data later
+            change: invoiceChange === "N/A" ? "N/A" : `${invoiceChange}%`,
+            isPositive:
+              invoiceChange !== "N/A" && parseFloat(invoiceChange) >= 0,
           },
           {
             label: "This Month Revenue",
             value: `$${monthlyRevenue}`,
-            change: "+8%", // Optional: Replace with real-time trend data later
+            change: revenueChange === "N/A" ? "N/A" : `${revenueChange}%`,
+            isPositive:
+              revenueChange !== "N/A" && parseFloat(revenueChange) >= 0,
           },
           {
-            label: "Pending Invoices",
-            value: "3", // TODO: Replace with dynamic count if needed
-            change: "-2",
+            label: "All Invoices & Quotations",
+            value: `${allInvoices.length}`,
+            change: "",
+            isPositive: true,
           },
         ].map((stat, index) => (
           <div
@@ -228,12 +370,15 @@ function Dashboard() {
                 {stat.value}
               </h3>
               <span
-                className={`text-sm ${
-                  stat.change.startsWith("+")
+                className={`text-sm flex items-center gap-1 ${
+                  stat.change === "N/A"
+                    ? "text-gray-400"
+                    : stat.isPositive
                     ? "text-green-600 dark:text-green-400"
                     : "text-red-600 dark:text-red-400"
                 }`}
               >
+                {stat.change === "N/A" ? "N/A" : stat.isPositive ? "↑" : "↓"}{" "}
                 {stat.change}
               </span>
             </div>
