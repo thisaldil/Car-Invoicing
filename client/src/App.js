@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -24,49 +24,34 @@ function AppWrapper() {
   const [uploadedInvoice, setUploadedInvoice] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [generatedInvoice, setGeneratedInvoice] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
+  // theme only
   useEffect(() => {
     const html = document.documentElement;
     const savedTheme = localStorage.getItem("theme") || "system";
-
     const applyTheme = (mode) => {
-      if (mode === "dark") {
-        html.classList.add("dark");
-      } else if (mode === "light") {
-        html.classList.remove("dark");
-      } else {
+      if (mode === "dark") html.classList.add("dark");
+      else if (mode === "light") html.classList.remove("dark");
+      else {
         const prefersDark = window.matchMedia(
           "(prefers-color-scheme: dark)"
         ).matches;
         html.classList.toggle("dark", prefersDark);
       }
     };
-
     applyTheme(savedTheme);
   }, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
-  }, []);
-
-  if (
-    !isAuthenticated &&
-    window.location.pathname !== "/login" &&
-    window.location.pathname !== "/register"
-  ) {
-    return <Navigate to="/login" />;
-  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white transition-colors duration-300">
       <Toaster position="top-center" />
       <Routes>
+        {/* Public */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        {/* Protected */}
         <Route
           path="/dashboard"
           element={
@@ -77,19 +62,18 @@ function AppWrapper() {
         >
           <Route index element={<Dashboard />} />
 
-          {/* Upload goes directly to CarInvoiceForm */}
           <Route
             path="upload"
             element={
               <CarInvoiceForm
                 onSave={(invoice) => {
                   setUploadedInvoice(invoice);
-                  navigate("/dashboard/templates");
+                  navigate("/dashboard/templates", { replace: true });
                 }}
-                onBack={() => navigate("/dashboard")}
+                onBack={() => navigate("/dashboard", { replace: true })}
                 onContinue={(invoice) => {
                   setUploadedInvoice(invoice);
-                  navigate("/dashboard/templates");
+                  navigate("/dashboard/templates", { replace: true });
                 }}
               />
             }
@@ -102,9 +86,13 @@ function AppWrapper() {
                 invoiceData={uploadedInvoice}
                 onSelectTemplate={({ template }) => {
                   setSelectedTemplate(template);
-                  navigate(`/dashboard/template-editor/${template._id}`);
+                  navigate(`/dashboard/template-editor/${template._id}`, {
+                    replace: true,
+                  });
                 }}
-                onCreateTemplate={() => navigate("/dashboard/template-editor")}
+                onCreateTemplate={() =>
+                  navigate("/dashboard/template-editor", { replace: true })
+                }
               />
             }
           />
@@ -117,9 +105,11 @@ function AppWrapper() {
                 onSave={({ template, invoiceId }) => {
                   setSelectedTemplate(template);
                   setGeneratedInvoice({ template, invoiceId });
-                  navigate("/dashboard/send");
+                  navigate("/dashboard/send", { replace: true });
                 }}
-                onCancel={() => navigate("/dashboard/templates")}
+                onCancel={() =>
+                  navigate("/dashboard/templates", { replace: true })
+                }
               />
             }
           />
@@ -132,9 +122,11 @@ function AppWrapper() {
                 onSave={({ template, invoiceId }) => {
                   setSelectedTemplate(template);
                   setGeneratedInvoice({ template, invoiceId });
-                  navigate("/dashboard/send");
+                  navigate("/dashboard/send", { replace: true });
                 }}
-                onCancel={() => navigate("/dashboard/templates")}
+                onCancel={() =>
+                  navigate("/dashboard/templates", { replace: true })
+                }
               />
             }
           />
@@ -144,7 +136,9 @@ function AppWrapper() {
             element={
               <SendOptions
                 invoice={generatedInvoice}
-                onBack={() => navigate("/dashboard/invoices")}
+                onBack={() =>
+                  navigate("/dashboard/invoices", { replace: true })
+                }
               />
             }
           />
@@ -153,33 +147,28 @@ function AppWrapper() {
             path="invoices"
             element={
               <AllInvoices
-                setGeneratedInvoice={(invoice) => {
-                  setGeneratedInvoice(invoice);
-                }}
+                setGeneratedInvoice={(inv) => setGeneratedInvoice(inv)}
               />
             }
           />
+
           <Route path="crm" element={<Crm />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 
-        <Route
-          path="/"
-          element={
-            <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
-          }
-        />
+        {/* Root → protected home */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </div>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <Router>
       <AppWrapper />
     </Router>
   );
 }
-
-export default App;
