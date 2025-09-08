@@ -62,6 +62,8 @@ app.use("/template", require("../routes/templateRoutes"));
 app.use("/invoice", require("../routes/invoiceRoutes"));
 app.use("/ocr", require("../routes/ocrRoutes"));
 
+app.post("/ping", (req, res) => res.json({ ok: true, body: req.body || null }));
+
 // cloudinary signature
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 app.post("/generate-signature", (req, res) => {
