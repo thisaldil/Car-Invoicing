@@ -195,7 +195,7 @@ function Dashboard({ setGeneratedInvoice }) {
             <span className="hidden md:block text-gray-700 font-medium dark:text-white">
               {user.name}
             </span>
-            <img
+            {/* <img
               src={
                 user?.picture
                   ? user.picture
@@ -205,7 +205,7 @@ function Dashboard({ setGeneratedInvoice }) {
               }
               alt={user.name}
               className="w-10 h-10 object-cover rounded-full border border-gray-300 "
-            />
+            /> */}
           </div>
         )}
       </div>
