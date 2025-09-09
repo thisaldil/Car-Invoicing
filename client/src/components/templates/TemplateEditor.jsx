@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import logo from "../../images/logo-placeholder.jpg";
 import axios from "axios";
+import api from "../../utils/axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { pdf } from "@react-pdf/renderer";
 import PdfInvoice from "../PdfInvoice";
@@ -55,8 +56,8 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
   useEffect(() => {
     if (id) {
       setIsEditing(true);
-      axios
-        .get(`https://car-invoicing.vercel.app/template/getTemplateById/${id}`)
+      api
+        .get(`/template/getTemplateById/${id}`)
         .then((res) => {
           const t = res.data;
           setTemplateName(t.name);
@@ -77,8 +78,8 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
 
   const checkDuplicateInvoice = async (userId, bookingRef) => {
     try {
-      const { data } = await axios.get(
-        `https://car-invoicing.vercel.app/invoice/getInvoiceDetailsByUserId/${userId}`
+      const { data } = await api.get(
+        `/invoice/getInvoiceDetailsByUserId/${userId}`
       );
       return (
         Array.isArray(data) &&
@@ -166,32 +167,29 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
 
         const cloudinaryUrl = cloudinaryRes.data.secure_url;
 
-        const saveInvoiceRes = await axios.post(
-          "https://car-invoicing.vercel.app/invoice/saveInvoiceDetails",
-          {
-            userId,
-            pdfUrl: cloudinaryUrl,
-            template: {
-              _id: id,
-              company: {
-                name: companyName,
-                logo: companyLogo,
-                address: companyAddress,
-              },
+        const saveInvoiceRes = await api.post("/invoice/saveInvoiceDetails", {
+          userId,
+          pdfUrl: cloudinaryUrl,
+          template: {
+            _id: id,
+            company: {
+              name: companyName,
+              logo: companyLogo,
+              address: companyAddress,
             },
-            invoiceDetails: {
-              bookingReference: bookingRef,
-              passengerName: invoiceData.passengerName,
-              passengers: invoiceData.passengers || [],
-            },
-            priceDetails: {
-              totalAmount: invoiceData.totalAmount,
-              transactionId: invoiceData.transactionId,
-              currency: invoiceData.currency,
-              paymentMethod: invoiceData.paymentMethod,
-            },
-          }
-        );
+          },
+          invoiceDetails: {
+            bookingReference: bookingRef,
+            passengerName: invoiceData.passengerName,
+            passengers: invoiceData.passengers || [],
+          },
+          priceDetails: {
+            totalAmount: invoiceData.totalAmount,
+            transactionId: invoiceData.transactionId,
+            currency: invoiceData.currency,
+            paymentMethod: invoiceData.paymentMethod,
+          },
+        });
 
         onSave?.({
           template: updatedTemplate,
@@ -203,16 +201,13 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
 
       let response;
       if (isEditing) {
-        response = await axios.put(
-          `https://car-invoicing.vercel.app/template/updateTemplate/${id}`,
+        response = await api.put(
+          `/template/updateTemplate/${id}`,
           updatedTemplate
         );
         toast.success("Template updated successfully!");
       } else {
-        response = await axios.post(
-          "https://car-invoicing.vercel.app/template/createTemplate",
-          updatedTemplate
-        );
+        response = await api.post("/template/createTemplate", updatedTemplate);
         toast.success("Template created successfully!");
       }
 

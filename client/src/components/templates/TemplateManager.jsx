@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { PlusIcon, CheckIcon, EditIcon, TrashIcon } from "lucide-react";
 import axios from "axios";
+import api from "../../utils/axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -13,9 +14,7 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
-        const res = await axios.get(
-          `https://car-invoicing.vercel.app/template/getTemplates/${userId}`
-        );
+        const res = await api.get(`/template/getTemplates/${userId}`);
         setTemplates(res.data);
         const defaultTemplate = res.data.find((t) => t.isDefault);
         if (defaultTemplate) setSelectedTemplateId(defaultTemplate._id);
@@ -36,12 +35,9 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
 
       await Promise.all(
         updatedTemplates.map((template) =>
-          axios.put(
-            `https://car-invoicing.vercel.app/template/updateTemplate/${template._id}`,
-            {
-              isDefault: template.isDefault,
-            }
-          )
+          api.put(`/template/updateTemplate/${template._id}`, {
+            isDefault: template.isDefault,
+          })
         )
       );
 
@@ -55,9 +51,7 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
   const handleDeleteTemplate = async (templateId) => {
     if (window.confirm("Are you sure you want to delete this template?")) {
       try {
-        await axios.delete(
-          `https://car-invoicing.vercel.app/template/deleteTemplate/${templateId}`
-        );
+        await api.delete(`/template/deleteTemplate/${templateId}`);
         setTemplates((prev) =>
           prev.filter((template) => template._id !== templateId)
         );
