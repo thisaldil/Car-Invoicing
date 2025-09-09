@@ -7,7 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import RequireAuth from "./auth/RequireAuth";
+import RequireAuth from "./components/auth/RequireAuth";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
 import TemplateManager from "./components/templates/TemplateManager.jsx";
