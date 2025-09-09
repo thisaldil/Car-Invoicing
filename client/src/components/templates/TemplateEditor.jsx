@@ -11,12 +11,16 @@ import {
 import logo from "../../images/logo-placeholder.jpg";
 import axios from "axios";
 import api from "../../utils/axios";
+import { Buffer } from "buffer";
 import { useParams, useNavigate } from "react-router-dom";
 import { pdf } from "@react-pdf/renderer";
 import PdfInvoice from "../PdfInvoice";
 import toast from "react-hot-toast";
 
 function TemplateEditor({ invoiceData, onSave, onCancel }) {
+  if (typeof window !== "undefined" && !window.Buffer) {
+    window.Buffer = Buffer;
+  }
   // Internal theme state - no external context needed
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -167,11 +171,21 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
 
         const cloudinaryUrl = cloudinaryRes.data.secure_url;
 
+        // Ensure we have a template id to satisfy server validation
+        let templateId = id;
+        if (!templateId) {
+          const created = await api.post(
+            "/template/createTemplate",
+            updatedTemplate
+          );
+          templateId = created?.data?._id;
+        }
+
         const saveInvoiceRes = await api.post("/invoice/saveInvoiceDetails", {
           userId,
           pdfUrl: cloudinaryUrl,
           template: {
-            _id: id,
+            _id: templateId,
             company: {
               name: companyName,
               logo: companyLogo,
