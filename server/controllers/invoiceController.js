@@ -42,6 +42,11 @@ exports.uploadInvoice = async (req, res) => {
 exports.saveInvoiceDetails = async (req, res) => {
   const { userId, pdfUrl, template, invoiceDetails, priceDetails } = req.body;
 
+  // Verify the requesting user owns this data
+  if (req.userId !== userId) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
   if (
     !userId ||
     !pdfUrl ||
@@ -94,6 +99,11 @@ exports.getInvoiceDetailsByUserId = async (req, res) => {
     return res.status(400).json({ error: "User ID is required" });
   }
 
+  // Verify the requesting user owns this data
+  if (req.userId !== userId) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
   try {
     const invoices = await Invoice.find({ userId });
     if (!invoices.length) {
@@ -118,6 +128,11 @@ exports.getInvoiceDetailsByInvoiceId = async (req, res) => {
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
       return res.status(404).json({ error: "Invoice not found" });
+    }
+
+    // Verify the requesting user owns this invoice
+    if (req.userId !== invoice.userId.toString()) {
+      return res.status(403).json({ error: "Access denied" });
     }
 
     res.status(200).json(invoice);
@@ -201,10 +216,17 @@ exports.sendInvoiceEmail = async (req, res) => {
 //delete template by id
 exports.deleteInvoice = async (req, res) => {
   try {
-    const invoice = await Invoice.findByIdAndDelete(req.params.invoiceId);
+    const invoice = await Invoice.findById(req.params.invoiceId);
     if (!invoice) {
       return res.status(404).json({ error: "invoice not found" });
     }
+
+    // Verify the requesting user owns this invoice
+    if (req.userId !== invoice.userId.toString()) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    await Invoice.findByIdAndDelete(req.params.invoiceId);
     res.status(200).json({ message: "invoice deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete invoice" });

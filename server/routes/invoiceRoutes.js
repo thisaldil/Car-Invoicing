@@ -37,28 +37,45 @@ const upload = multer({
   },
 });
 
+// All routes now protected with authRequired middleware
 router.post(
   "/upload-ticket",
+  authRequired,
   upload.single("ticket"),
   ticketController.extractTicketData
 );
 router.post(
   "/upload",
+  authRequired,
   upload.single("invoice"),
   invoiceController.uploadInvoice
 );
-router.post("/sendInvoiceEmail", invoiceController.sendInvoiceEmail);
-router.post("/saveInvoiceDetails", invoiceController.saveInvoiceDetails);
+router.post(
+  "/sendInvoiceEmail",
+  authRequired,
+  invoiceController.sendInvoiceEmail
+);
+router.post(
+  "/saveInvoiceDetails",
+  authRequired,
+  invoiceController.saveInvoiceDetails
+);
 router.get(
   "/getInvoiceDetailsByUserId/:userId",
+  authRequired,
   invoiceController.getInvoiceDetailsByUserId
 );
 router.get(
   "/getInvoiceDetailsByInvoiceId/:invoiceId",
+  authRequired,
   invoiceController.getInvoiceDetailsByInvoiceId
 );
-router.delete("/deleteInvoice/:invoiceId", invoiceController.deleteInvoice);
-router.get("/recent", invoiceController.getRecentInvoices);
+router.delete(
+  "/deleteInvoice/:invoiceId",
+  authRequired,
+  invoiceController.deleteInvoice
+);
+router.get("/recent", authRequired, invoiceController.getRecentInvoices);
 
 // Get this month's invoices
 // router.get("/month", ensureLoggedIn(), invoiceController.getMonthlyInvoices);
