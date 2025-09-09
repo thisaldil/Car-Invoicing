@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import avatar from "../images/default-avatar.png";
+//import avatar from "../images/default-avatar.png";
 
 function Dashboard({ setGeneratedInvoice }) {
   const userId = localStorage.getItem("userId");
