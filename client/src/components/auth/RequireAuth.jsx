@@ -21,21 +21,35 @@ export default function RequireAuth({ children }) {
   useEffect(() => {
     (async () => {
       const token = localStorage.getItem("token");
-      if (!token) return setState({ checked: true, ok: false });
+      if (!token) {
+        console.log("No token found in localStorage");
+        return setState({ checked: true, ok: false });
+      }
 
       // 1) Local check: exp not expired (allow 30s skew)
       const exp = decodeJwtExp(token);
       if (exp && exp * 1000 <= Date.now() + 30_000) {
+        console.log("Token expired locally");
         return setState({ checked: true, ok: false });
       }
 
       // 2) Server check: prove token works on API
       try {
+        console.log("Checking token with server...");
         const res = await fetch("https://car-invoicing.vercel.app/user/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        console.log("Server response status:", res.status);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.log("Server error response:", errorText);
+        }
+
         setState({ checked: true, ok: res.ok });
-      } catch {
+      } catch (error) {
+        console.log("Network error during auth check:", error);
         setState({ checked: true, ok: false });
       }
     })();
@@ -46,6 +60,7 @@ export default function RequireAuth({ children }) {
   }
   if (!state.ok) {
     // clean up stale token so we don't loop
+    console.log("Authentication failed, redirecting to login");
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("userId");

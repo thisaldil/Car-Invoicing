@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = ({
   action = "https://car-invoicing.vercel.app/user/login", // change if your endpoint differs
@@ -8,6 +9,7 @@ const LoginForm = ({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const navigate = useNavigate();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -39,9 +41,13 @@ const LoginForm = ({
           localStorage.setItem("userId", data.user.id || data.userId);
         }
       }
+
+      console.log("Login successful, token stored:", data.token);
+
       if (onSuccess) onSuccess(data);
-      // Default navigation if no onSuccess provided
-      window.location.href = "/dashboard";
+
+      // Use React Router navigation instead of window.location.href
+      navigate("/dashboard", { replace: true });
     } catch (e) {
       setErr("Network error");
       console.error(e);
