@@ -1,18 +1,35 @@
 import React from "react";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router-dom";
 
 const LoginGoogle = ({
   clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID, // CRA env (frontend)
-  endpoint = "https://car-invoicing.vercel.app/auth/google/token", // backend login
+  loginEndpoint = "https://car-invoicing.vercel.app/auth/google/token", // backend login
+  registerEndpoint = "https://car-invoicing.vercel.app/auth/google/register", // backend register
   onSuccess, // optional callback(data)
 }) => {
+  const navigate = useNavigate();
+
   const handleSuccess = async (response) => {
     try {
-      const res = await fetch(endpoint, {
+      console.log("Google OAuth response received");
+
+      // First try to login (existing user)
+      let res = await fetch(loginEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: response.credential }),
       });
+
+      // If login fails (user not found), try to register
+      if (!res.ok && res.status === 404) {
+        console.log("User not found, attempting registration...");
+        res = await fetch(registerEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: response.credential }),
+        });
+      }
 
       const text = await res.text();
       if (!res.ok) {
@@ -21,13 +38,21 @@ const LoginGoogle = ({
       }
 
       const data = JSON.parse(text || "{}");
-      if (data.token) localStorage.setItem("token", data.token);
+      console.log("Google auth response:", data);
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        console.log("Token stored in localStorage");
+      }
       if (data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
         if (data.userId) localStorage.setItem("userId", data.userId);
       }
+
+      console.log("Google login successful, navigating to dashboard");
+
       if (onSuccess) onSuccess(data);
-      else window.location.href = "/dashboard";
+      else navigate("/dashboard", { replace: true });
     } catch (e) {
       console.error("Google Login Error:", e);
     }

@@ -1,11 +1,23 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import bg from "../../images/bg.png";
 import LoginForm from "../../components/auth/LoginForm";
 import LoginGoogle from "../../components/auth/GoogleLogin";
 
 const Login = () => {
+  const navigate = useNavigate();
+
+  const handleLoginSuccess = (data) => {
+    console.log("Email login success:", data);
+    // Navigation is handled in LoginForm component
+  };
+
+  const handleGoogleSuccess = (data) => {
+    console.log("Google login success:", data);
+    // Navigation is handled in GoogleLogin component
+  };
+
   return (
     <div
       style={{
@@ -50,8 +62,8 @@ const Login = () => {
 
           {/* Email/Password Login */}
           <LoginForm
-            action="https://car-invoicing.vercel.app/user/login" // change if your endpoint differs
-            onSuccess={(data) => console.log("Email login success:", data)}
+            action="https://car-invoicing.vercel.app/user/login"
+            onSuccess={handleLoginSuccess}
           />
 
           <div className="text-gray-400 text-sm my-4">
@@ -60,13 +72,11 @@ const Login = () => {
 
           {/* Google Login */}
           <div className="flex justify-center mb-4">
-            <LoginGoogle
-              onSuccess={(data) => console.log("Google login success:", data)}
-            />
+            <LoginGoogle onSuccess={handleGoogleSuccess} />
           </div>
 
           <div className="mt-6 text-sm text-gray-600">
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <Link to="/register" className="text-blue-500 hover:underline">
               Register here
             </Link>
