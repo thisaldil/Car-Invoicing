@@ -16,6 +16,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { pdf } from "@react-pdf/renderer";
 import PdfInvoice from "../PdfInvoice";
 import toast from "react-hot-toast";
+import { ImageIcon, FileTextIcon } from "lucide-react";
 
 function TemplateEditor({ invoiceData, onSave, onCancel }) {
   if (typeof window !== "undefined" && !window.Buffer) {
@@ -37,6 +38,19 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
+  const [letterheadUrl, setLetterheadUrl] = useState(""); // top bar image
+  const [termsText, setTermsText] = useState(
+    "Payment: 100% of the total amount shall be paid by irrevocable L/C at sight within 2 weeks from date of contract.\n\n" +
+      "Advising Bank: MUFG BANK, LTD. (SWIFT: BOTKJPJT)\n" +
+      "Available With By: Any bank in Japan by negotiation\n" +
+      "Draft: At sight\n" +
+      "Partial Shipments: Not allowed   Transhipment: Allowed\n" +
+      "Port of Loading: Any port, Japan   Port of Discharge: Any port, Sri Lanka\n" +
+      "Latest Date of Shipment: 70 days from L/C issuing date\n" +
+      "Documents Required: Invoice, Full set B/L, Insurance (if CIP/CIF)\n" +
+      "Charges: All outside Japan including reimbursing charges are for applicant account.\n" +
+      "Period for Presentation: 21 days from shipment but within validity."
+  );
   const [templateName, setTemplateName] = useState("New Template");
   const [companyName, setCompanyName] = useState("Your Company Name");
   const [companyLogo, setCompanyLogo] = useState(logo);
@@ -71,6 +85,10 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           setAccentColor(t.design.accentColor);
           setShowFooter(t.design.showFooter);
           setFooterText(t.design.footerText);
+
+          // NEW: safe reads
+          setLetterheadUrl(t.design?.letterheadUrl || "");
+          setTermsText(t.design?.termsText || termsText);
         })
         .catch((err) => {
           console.error("Error loading template:", err);
@@ -78,6 +96,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           navigate("/template-manager");
         });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const checkDuplicateInvoice = async (userId, bookingRef) => {
@@ -113,24 +132,35 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         accentColor,
         showFooter,
         footerText,
+        // NEW
+        letterheadUrl,
+        termsText, // stored with the template
       },
     };
 
     setUploading(true);
 
     try {
+      // --- INVOICE GENERATION MODE ---
       if (invoiceData) {
-        const bookingRef = invoiceData.bookingReference || "DRAFT";
-        const currentDate = new Date().toISOString().split("T")[0];
-        const fileName = `${bookingRef}-invoice-${currentDate}.pdf`;
+        // Prefer bookingReference; fall back to invoiceNo; else DRAFT
+        const bookingRef =
+          invoiceData.bookingReference || invoiceData.invoiceNo || "DRAFT";
 
+        const currentDate = new Date().toISOString().split("T")[0];
+        const safeRef = String(bookingRef).replace(/[^\w\-]+/g, "_");
+        const fileName = `${safeRef}-invoice-${currentDate}.pdf`;
+
+        // Duplicate check only if we have a real bookingRef
         let duplicateExists = false;
-        try {
-          duplicateExists = await checkDuplicateInvoice(userId, bookingRef);
-        } catch (err) {
-          toast.error(err.message);
-          setUploading(false);
-          return;
+        if (bookingRef && bookingRef !== "DRAFT") {
+          try {
+            duplicateExists = await checkDuplicateInvoice(userId, bookingRef);
+          } catch (err) {
+            toast.error(err.message || "Duplicate check failed");
+            setUploading(false);
+            return;
+          }
         }
 
         if (duplicateExists) {
@@ -146,14 +176,28 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           }
         }
 
+        // Per-invoice terms override: use current editor terms if present
+        const invoiceDataWithOverrides = {
+          ...invoiceData,
+          termsText, // this wins over template.design.termsText in PdfInvoice if coded that way
+        };
+
+        // Render PDF
         const blob = await pdf(
           <PdfInvoice
-            invoiceData={invoiceData}
+            invoiceData={invoiceDataWithOverrides}
             templateData={updatedTemplate}
           />
         ).toBlob();
 
-        // Upload to Cloudinary
+        // Guard: Cloudinary env
+        if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+          toast.error("Missing Cloudinary config.");
+          setUploading(false);
+          return;
+        }
+
+        // Upload PDF to Cloudinary
         const formData = new FormData();
         formData.append("file", blob, fileName);
         formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
@@ -162,16 +206,11 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         const cloudinaryRes = await axios.post(
           `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`,
           formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
-
         const cloudinaryUrl = cloudinaryRes.data.secure_url;
 
-        // Ensure we have a template id to satisfy server validation
+        // Ensure template exists and we have an id
         let templateId = id;
         if (!templateId) {
           const created = await api.post(
@@ -181,6 +220,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           templateId = created?.data?._id;
         }
 
+        // Save invoice record
         const saveInvoiceRes = await api.post("/invoice/saveInvoiceDetails", {
           userId,
           pdfUrl: cloudinaryUrl,
@@ -194,6 +234,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           },
           invoiceDetails: {
             bookingReference: bookingRef,
+            // retain your existing fields
             passengerName: invoiceData.passengerName,
             passengers: invoiceData.passengers || [],
           },
@@ -207,12 +248,14 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
 
         onSave?.({
           template: updatedTemplate,
-          invoiceId: saveInvoiceRes.data.invoice._id,
+          invoiceId: saveInvoiceRes?.data?.invoice?._id,
         });
+
         navigate("/dashboard/send");
         return;
       }
 
+      // --- TEMPLATE-ONLY MODE ---
       let response;
       if (isEditing) {
         response = await api.put(
@@ -229,30 +272,46 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
       navigate("/dashboard/templates");
     } catch (err) {
       console.error("Failed to save template or PDF:", err);
-      toast.error("Error saving template or uploading PDF. Please try again.");
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Error saving template or uploading PDF. Please try again.";
+      toast.error(msg);
     } finally {
       setUploading(false);
     }
   };
 
   const handleLogoChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setCompanyLogo(event.target.result);
-        }
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setCompanyLogo(event.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onLetterheadChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (ev.target?.result) setLetterheadUrl(ev.target.result.toString());
+    };
+    reader.readAsDataURL(file);
   };
 
   const sectionRefs = {
-    header: useRef(null),
-    info: useRef(null),
-    flights: useRef(null),
-    pricing: useRef(null),
-    footer: useRef(null),
+    header: useRef(null), // letterhead
+    info: useRef(null), // middle: proforma content
+    pricing: useRef(null), // kept for compatibility (unused in new layout)
+    flights: useRef(null), // kept for compatibility (unused in new layout)
+    footer: useRef(null), // bottom: terms & conditions
   };
 
   return (
@@ -308,244 +367,176 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
               </h2>
             </div>
             <div className="p-8 overflow-auto" ref={previewRef}>
-              {/* Invoice Template Preview */}
               <div className="border border-gray-200 dark:border-gray-600 rounded-md overflow-visible bg-white dark:bg-gray-800">
-                {/* Header */}
+                {/* LAYER 1: TOP BAR LETTERHEAD */}
                 <div
                   ref={sectionRefs.header}
-                  className={`p-6 border-b border-gray-200 dark:border-gray-600 flex justify-between items-start cursor-pointer transition-all ${
+                  onClick={() => setSelectedSection("header")}
+                  className={`border-b border-gray-200 dark:border-gray-600 cursor-pointer ${
                     selectedSection === "header"
                       ? "ring-2 ring-orange-500 dark:ring-orange-400"
                       : ""
                   }`}
-                  onClick={() => setSelectedSection("header")}
                 >
-                  <div>
+                  {letterheadUrl ? (
                     <img
-                      src={companyLogo}
-                      alt="Company Logo"
-                      className="max-h-16 mb-2"
+                      src={letterheadUrl}
+                      alt="Letterhead"
+                      className="w-full h-28 object-cover"
                     />
-                    <h2
-                      className="text-xl font-bold"
-                      style={{ color: accentColor }}
-                    >
-                      {companyName}
-                    </h2>
-                  </div>
-                  <div className="text-right">
-                    <h1
-                      className="text-2xl font-bold mb-1"
-                      style={{ color: accentColor }}
-                    >
-                      INVOICE
-                    </h1>
-                    <p className="text-gray-500 dark:text-gray-400">
-                      Booking Ref: {invoiceData?.bookingReference || ""}
-                    </p>
-                    <p className="text-gray-500 dark:text-gray-400">
-                      {new Date().toLocaleDateString("en-US", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="h-28 flex items-center justify-center text-gray-400">
+                      No letterhead selected
+                    </div>
+                  )}
                 </div>
 
-                {/* Company & Client Info */}
+                {/* LAYER 2: MIDDLE CONTENT (PROFORMA) */}
                 <div
                   ref={sectionRefs.info}
-                  className={`p-6 grid grid-cols-2 gap-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer transition-all ${
+                  onClick={() => setSelectedSection("info")}
+                  className={`p-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer ${
                     selectedSection === "info"
                       ? "ring-2 ring-orange-500 dark:ring-orange-400"
                       : ""
                   }`}
-                  onClick={() => setSelectedSection("info")}
                 >
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                      From
-                    </h3>
-                    <div className="whitespace-pre-line text-gray-700 dark:text-gray-300">
-                      {companyAddress}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="text-sm">
+                      <div className="text-gray-500 dark:text-gray-400">
+                        Consignee
+                      </div>
+                      <div className="font-semibold text-gray-800 dark:text-gray-100">
+                        {invoiceData?.consigneeName || "--"}
+                      </div>
+                      <div className="whitespace-pre-line text-gray-700 dark:text-gray-300">
+                        {[
+                          invoiceData?.addressLine1,
+                          invoiceData?.addressLine2,
+                          invoiceData?.addressLine3,
+                        ]
+                          .filter(Boolean)
+                          .join("\n") || "--"}
+                      </div>
+                    </div>
+                    <div className="text-right text-sm">
+                      <div
+                        className="font-bold text-xl"
+                        style={{ color: accentColor }}
+                      >
+                        PROFORMA INVOICE
+                      </div>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        Invoice No.:{" "}
+                        <span className="font-medium">
+                          {invoiceData?.invoiceNo || "--"}
+                        </span>
+                      </div>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        Date:{" "}
+                        <span className="font-medium">
+                          {invoiceData?.date || "--"}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                      To
-                    </h3>
-                    {Array.isArray(invoiceData?.passengerName) &&
-                    invoiceData.passengerName.length > 0 ? (
-                      invoiceData.passengerName.map((name, idx) => (
-                        <div
-                          key={idx}
-                          className="mb-3 border-b border-gray-200 dark:border-gray-600 pb-2 last:border-none last:pb-0"
-                        >
-                          <p className="font-medium text-gray-800 dark:text-gray-200">
-                            {name}
-                          </p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            Passport:{" "}
-                            {invoiceData.passengers?.[idx]?.passportNumber ||
-                              "--"}
-                          </p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            Nationality:{" "}
-                            {invoiceData.passengers?.[idx]?.nationality || "--"}
-                          </p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            DOB: {invoiceData.passengers?.[idx]?.dob || "--"}
-                          </p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            Gender:{" "}
-                            {invoiceData.passengers?.[idx]?.gender || "--"}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 dark:text-gray-400">
-                        No passenger details available.
-                      </p>
-                    )}
+
+                  <div className="mb-4">
+                    <span className="font-medium text-gray-800 dark:text-gray-100">
+                      Description:{" "}
+                    </span>
+                    <span className="text-gray-800 dark:text-gray-100">
+                      {invoiceData?.description || "USED MOTOR VEHICLES"}
+                    </span>
+                  </div>
+
+                  {/* Vehicles table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse border border-gray-300 dark:border-gray-600 text-xs md:text-sm">
+                      <thead className="bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                        <tr>
+                          <th className="border px-2 py-1">#</th>
+                          <th className="border px-2 py-1">Make</th>
+                          <th className="border px-2 py-1">Model</th>
+                          <th className="border px-2 py-1">Chassis No</th>
+                          <th className="border px-2 py-1">Year</th>
+                          <th className="border px-2 py-1">HS Code</th>
+                          <th className="border px-2 py-1">Qty</th>
+                          <th className="border px-2 py-1">FOB</th>
+                          <th className="border px-2 py-1">Insurance</th>
+                          <th className="border px-2 py-1">Freight</th>
+                          <th className="border px-2 py-1">CIF</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(invoiceData?.items || []).map((r, i) => (
+                          <tr
+                            key={i}
+                            className="text-gray-900 dark:text-gray-100"
+                          >
+                            <td className="border px-2 py-1">{i + 1}</td>
+                            <td className="border px-2 py-1">
+                              {r.make || "-"}
+                            </td>
+                            <td className="border px-2 py-1">
+                              {r.model || "-"}
+                            </td>
+                            <td className="border px-2 py-1">
+                              {r.chassisNo || "-"}
+                            </td>
+                            <td className="border px-2 py-1">
+                              {r.year || "-"}
+                            </td>
+                            <td className="border px-2 py-1">
+                              {r.hsCode || "-"}
+                            </td>
+                            <td className="border px-2 py-1">{r.qty || "-"}</td>
+                            <td className="border px-2 py-1">{fmt(r.fob)}</td>
+                            <td className="border px-2 py-1">
+                              {fmt(r.insurance)}
+                            </td>
+                            <td className="border px-2 py-1">
+                              {fmt(r.freight)}
+                            </td>
+                            <td className="border px-2 py-1">{fmt(r.cif)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Total CIF */}
+                  <div className="text-right mt-4 font-bold text-gray-900 dark:text-gray-100">
+                    Total CIF: {fmt(sumCIF(invoiceData?.items || []))}
                   </div>
                 </div>
 
-                {/* Flight Details */}
+                {/* LAYER 3: TERMS & CONDITIONS */}
                 <div
-                  ref={sectionRefs.flights}
-                  className={`p-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer transition-all ${
-                    selectedSection === "flights"
+                  ref={sectionRefs.footer}
+                  onClick={() => setSelectedSection("footer")}
+                  className={`p-6 cursor-pointer ${
+                    selectedSection === "footer"
                       ? "ring-2 ring-orange-500 dark:ring-orange-400"
                       : ""
                   }`}
-                  onClick={() => setSelectedSection("flights")}
+                  style={{
+                    backgroundColor:
+                      theme === "dark"
+                        ? accentColor + "20"
+                        : accentColor + "10",
+                  }}
                 >
                   <h3
-                    className="font-medium mb-4"
+                    className="font-medium mb-2"
                     style={{ color: accentColor }}
                   >
-                    Flight Details
+                    Terms & Conditions
                   </h3>
-                  {invoiceData?.flightDetails?.map((flight, i) => (
-                    <div
-                      key={i}
-                      className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md mb-4"
-                    >
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium text-gray-800 dark:text-gray-200">
-                          {flight.flightNumber || `Flight #${i + 1}`}
-                        </h4>
-                        <span
-                          className="text-sm font-medium"
-                          style={{ color: accentColor }}
-                        >
-                          {flight.class}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            From
-                          </p>
-                          <p className="font-medium text-gray-800 dark:text-gray-200">
-                            {flight.from}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {flight.departureDate} at {flight.departureTime}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            To
-                          </p>
-                          <p className="font-medium text-gray-800 dark:text-gray-200">
-                            {flight.to}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {flight.arrivalDate} at {flight.arrivalTime}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                        Airline: {flight.airline || "-"} | Terminal:{" "}
-                        {flight.departureTerminal || "-"}
-                      </div>
-                    </div>
-                  ))}
+                  <pre className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-100">
+                    {termsText}
+                  </pre>
                 </div>
-
-                {/* Pricing */}
-                <div
-                  ref={sectionRefs.pricing}
-                  className={`p-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer transition-all ${
-                    selectedSection === "pricing"
-                      ? "ring-2 ring-orange-500 dark:ring-orange-400"
-                      : ""
-                  }`}
-                  onClick={() => setSelectedSection("pricing")}
-                >
-                  <h3
-                    className="font-medium mb-4"
-                    style={{ color: accentColor }}
-                  >
-                    Pricing Details
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 dark:text-gray-300">
-                        Total Amount
-                      </span>
-                      <div className="flex items-center">
-                        <span className="font-medium mr-2 text-gray-800 dark:text-gray-200">
-                          {invoiceData?.currency || "USD"}
-                        </span>
-                        <span className="font-medium text-gray-800 dark:text-gray-200">
-                          {invoiceData?.totalAmount || "--"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 dark:text-gray-300">
-                        Payment Method
-                      </span>
-                      <span className="font-medium text-gray-800 dark:text-gray-200">
-                        {invoiceData?.paymentMethod || "--"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 dark:text-gray-300">
-                        Transaction ID
-                      </span>
-                      <span className="font-medium text-gray-800 dark:text-gray-200">
-                        {invoiceData?.transactionId || "--"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer */}
-                {showFooter && (
-                  <div
-                    ref={sectionRefs.footer}
-                    className={`p-6 text-center cursor-pointer transition-all ${
-                      selectedSection === "footer"
-                        ? "ring-2 ring-orange-500 dark:ring-orange-400"
-                        : ""
-                    }`}
-                    onClick={() => setSelectedSection("footer")}
-                    style={{
-                      backgroundColor:
-                        theme === "dark"
-                          ? accentColor + "20"
-                          : accentColor + "10",
-                    }}
-                  >
-                    <p className="text-gray-700 dark:text-gray-300">
-                      {footerText}
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -558,6 +549,51 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
               </h2>
             </div>
             <div className="p-6 space-y-6">
+              {/* Letterhead uploader */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Letterhead Image (top bar)
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="w-24 h-12 bg-gray-100 dark:bg-gray-600 rounded overflow-hidden flex items-center justify-center">
+                    {letterheadUrl ? (
+                      <img
+                        src={letterheadUrl}
+                        alt="Letterhead"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <ImageIcon className="w-5 h-5 text-gray-400" />
+                    )}
+                  </div>
+                  <label className="bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 px-3 py-1 rounded cursor-pointer transition-colors">
+                    Change
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={onLetterheadChange}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Terms & Conditions editor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Terms & Conditions
+                </label>
+                <textarea
+                  rows={8}
+                  value={termsText}
+                  onChange={(e) => setTermsText(e.target.value)}
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  This appears as the third layer in the preview and in the PDF.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Template Name
@@ -725,6 +761,23 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
       </div>
     </div>
   );
+}
+
+function toNum(x) {
+  const n = typeof x === "string" ? Number(x.replace(/,/g, "")) : Number(x);
+  return Number.isFinite(n) ? n : 0;
+}
+function fmt(n) {
+  const v = toNum(n);
+  return v
+    ? new Intl.NumberFormat(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(v)
+    : n || "-";
+}
+function sumCIF(items) {
+  return (items || []).reduce((s, r) => s + toNum(r?.cif), 0);
 }
 
 export default TemplateEditor;
