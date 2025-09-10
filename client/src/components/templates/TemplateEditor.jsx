@@ -70,6 +70,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
   const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
   const CLOUDINARY_UPLOAD_PRESET =
     process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
+  const [bottomLayerUrl, setBottomLayerUrl] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -89,6 +90,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           // NEW: safe reads
           setLetterheadUrl(t.design?.letterheadUrl || "");
           setTermsText(t.design?.termsText || termsText);
+          setBottomLayerUrl(t.design?.bottomLayerUrl || "");
         })
         .catch((err) => {
           console.error("Error loading template:", err);
@@ -134,7 +136,8 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         footerText,
         // NEW
         letterheadUrl,
-        termsText, // stored with the template
+        termsText,
+        bottomLayerUrl, // stored with the template
       },
     };
 
@@ -302,6 +305,18 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       if (ev.target?.result) setLetterheadUrl(ev.target.result.toString());
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onBottomLayerChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (ev.target?.result) {
+        setBottomLayerUrl(ev.target.result.toString());
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -537,6 +552,19 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                     {termsText}
                   </pre>
                 </div>
+
+                {/* LAYER 4: BOTTOM IMAGE (photo under Terms) */}
+                {bottomLayerUrl && (
+                  <div className="p-6">
+                    <div className="flex justify-end">
+                      <img
+                        src={bottomLayerUrl}
+                        alt="Bottom layer"
+                        className="h-16 md:h-20 object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -591,6 +619,37 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   This appears as the third layer in the preview and in the PDF.
+                </p>
+              </div>
+              {/* Bottom Layer Image (appears under Terms) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Bottom Layer Image (under Terms)
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="w-40 h-14 bg-gray-100 dark:bg-gray-600 rounded overflow-hidden flex items-center justify-center">
+                    {bottomLayerUrl ? (
+                      <img
+                        src={bottomLayerUrl}
+                        alt="Bottom layer"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <ImageIcon className="w-5 h-5 text-gray-400" />
+                    )}
+                  </div>
+                  <label className="bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 px-3 py-1 rounded cursor-pointer transition-colors">
+                    Change
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={onBottomLayerChange}
+                    />
+                  </label>
+                </div>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  PNG/JPG. Transparent PNG recommended.
                 </p>
               </div>
 
