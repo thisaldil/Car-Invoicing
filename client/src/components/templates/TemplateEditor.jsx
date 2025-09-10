@@ -8,7 +8,6 @@ import {
   SunIcon,
   MoonIcon,
 } from "lucide-react";
-import logo from "../../images/logo-placeholder.jpg";
 import axios from "axios";
 import api from "../../utils/axios";
 import { Buffer } from "buffer";
@@ -16,7 +15,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { pdf } from "@react-pdf/renderer";
 import PdfInvoice from "../PdfInvoice";
 import toast from "react-hot-toast";
-import { ImageIcon, FileTextIcon } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 
 function TemplateEditor({ invoiceData, onSave, onCancel }) {
   if (typeof window !== "undefined" && !window.Buffer) {
@@ -52,14 +51,9 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
       "Period for Presentation: 21 days from shipment but within validity."
   );
   const [templateName, setTemplateName] = useState("New Template");
-  const [companyName, setCompanyName] = useState("Your Company Name");
-  const [companyLogo, setCompanyLogo] = useState(logo);
-  const [companyAddress, setCompanyAddress] = useState(
-    "123 Business Street\nCity, State 12345\nPhone: (123) 456-7890\nEmail: info@yourcompany.com"
-  );
+
   const [accentColor, setAccentColor] = useState("#3B82F6");
-  const [showFooter, setShowFooter] = useState(true);
-  const [footerText, setFooterText] = useState("Thank you for your business!");
+
   const [selectedSection, setSelectedSection] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
@@ -80,12 +74,8 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         .then((res) => {
           const t = res.data;
           setTemplateName(t.name);
-          setCompanyName(t.company.name);
-          setCompanyLogo(t.company.logo);
-          setCompanyAddress(t.company.address);
+
           setAccentColor(t.design.accentColor);
-          setShowFooter(t.design.showFooter);
-          setFooterText(t.design.footerText);
 
           // NEW: safe reads
           setLetterheadUrl(t.design?.letterheadUrl || "");
@@ -125,16 +115,10 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
       name: templateName,
       description: "Custom invoice template",
       isDefault: false,
-      company: {
-        name: companyName,
-        logo: companyLogo,
-        address: companyAddress,
-      },
+
       design: {
         accentColor,
-        showFooter,
-        footerText,
-        // NEW
+
         letterheadUrl,
         termsText,
         bottomLayerUrl, // stored with the template
@@ -227,14 +211,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         const saveInvoiceRes = await api.post("/invoice/saveInvoiceDetails", {
           userId,
           pdfUrl: cloudinaryUrl,
-          template: {
-            _id: templateId,
-            company: {
-              name: companyName,
-              logo: companyLogo,
-              address: companyAddress,
-            },
-          },
+          template: { _id: templateId },
           invoiceDetails: {
             bookingReference: bookingRef,
             // retain your existing fields
@@ -283,19 +260,6 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
     } finally {
       setUploading(false);
     }
-  };
-
-  const handleLogoChange = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setCompanyLogo(event.target.result);
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   const onLetterheadChange = (e) => {
@@ -667,52 +631,6 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Company Logo
-                </label>
-                <div className="flex items-center mb-2">
-                  <img
-                    src={companyLogo}
-                    alt="Logo Preview"
-                    className="h-10 mr-4 rounded"
-                  />
-                  <label className="bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 px-3 py-1 rounded cursor-pointer transition-colors">
-                    Change Logo
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleLogoChange}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Company Address
-                </label>
-                <textarea
-                  value={companyAddress}
-                  onChange={(e) => setCompanyAddress(e.target.value)}
-                  rows={4}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Accent Color
                 </label>
                 <div className="flex items-center">
@@ -728,90 +646,6 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                     onChange={(e) => setAccentColor(e.target.value)}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
                   />
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="showFooter"
-                  checked={showFooter}
-                  onChange={(e) => setShowFooter(e.target.checked)}
-                  className="w-4 h-4 text-orange-600 dark:text-orange-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500 dark:focus:ring-orange-400"
-                />
-                <label
-                  htmlFor="showFooter"
-                  className="ml-2 text-sm text-gray-700 dark:text-gray-300"
-                >
-                  Show Footer
-                </label>
-              </div>
-
-              {showFooter && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Footer Text
-                  </label>
-                  <input
-                    type="text"
-                    value={footerText}
-                    onChange={(e) => setFooterText(e.target.value)}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent transition-colors"
-                  />
-                </div>
-              )}
-
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Template Sections
-                </h3>
-                <div className="space-y-2">
-                  {[
-                    {
-                      id: "header",
-                      label: "Header",
-                      icon: LayoutIcon,
-                    },
-                    {
-                      id: "info",
-                      label: "Company & Client Info",
-                      icon: TypeIcon,
-                    },
-                    {
-                      id: "flights",
-                      label: "Flight Details",
-                      icon: PlusIcon,
-                    },
-                    {
-                      id: "pricing",
-                      label: "Pricing",
-                      icon: PlusIcon,
-                    },
-                    {
-                      id: "footer",
-                      label: "Footer",
-                      icon: PlusIcon,
-                    },
-                  ].map((section) => (
-                    <button
-                      key={section.id}
-                      onClick={() => {
-                        setSelectedSection(section.id);
-                        sectionRefs[section.id]?.current?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
-                      }}
-                      className={`flex items-center w-full p-2 rounded-md text-left transition-colors ${
-                        selectedSection === section.id
-                          ? "bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      }`}
-                    >
-                      <section.icon className="w-4 h-4 mr-2" />
-                      <span>{section.label}</span>
-                    </button>
-                  ))}
                 </div>
               </div>
             </div>
