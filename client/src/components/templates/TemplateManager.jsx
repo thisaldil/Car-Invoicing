@@ -114,13 +114,15 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
             <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
               <img
                 src={
-                  template.company.logo ||
-                  "https://via.placeholder.com/300x200.png?text=No+Preview"
+                  template?.design?.letterheadUrl ||
+                  template?.design?.bottomLayerUrl ||
+                  template?.company?.logo || // backward-compat (old docs)
+                  "https://via.placeholder.com/600x300.png?text=No+Preview"
                 }
                 alt={template.name}
                 className="w-full h-full object-cover"
               />
-              {template.isDefault && (
+              {template?.isDefault && (
                 <div className="absolute top-2 right-2 bg-orange-600 text-white text-xs px-2 py-1 rounded">
                   Default
                 </div>
