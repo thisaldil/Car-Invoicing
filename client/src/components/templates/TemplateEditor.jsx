@@ -193,10 +193,9 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         const formData = new FormData();
         formData.append("file", blob, fileName);
         formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-        formData.append("resource_type", "raw");
 
         const cloudinaryRes = await axios.post(
-          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`,
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -216,7 +215,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         saveInvoicePayload = {
           userId,
           pdfUrl: cloudinaryUrl,
-          templateId,
+          template: { _id: templateId },
           invoiceDetails: {
             bookingReference: bookingRef,
             passengerName: invoiceData.passengerName,
@@ -233,7 +232,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         };
         const saveInvoiceRes = await api.post(
           "/invoice/saveInvoiceDetails",
-          body
+          saveInvoicePayload
         );
 
         onSave?.({
@@ -262,17 +261,18 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
       navigate("/dashboard/templates");
     } catch (err) {
       console.error("Failed to save template or PDF:", err);
-      console.error("saveInvoiceDetails error payload:", body);
-      console.error(
-        "saveInvoiceDetails response:",
-        err.response?.status,
-        err.response?.data
-      );
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+      if (status || data) {
+        console.error("saveInvoiceDetails response:", status, data);
+      }
       const msg =
-        err?.response?.data?.message ||
+        data?.error?.message ||
+        data?.error ||
+        data?.message ||
         err?.message ||
         "Error saving template or uploading PDF. Please try again.";
-      toast.error(msg);
+      toast.error(String(msg));
     } finally {
       setUploading(false);
     }
