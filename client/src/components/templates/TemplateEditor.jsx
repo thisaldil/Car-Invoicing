@@ -131,9 +131,12 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
       // --- INVOICE GENERATION MODE ---
       if (invoiceData) {
         // Prefer bookingReference; fall back to invoiceNo; else DRAFT
-        const bookingRef =
-          invoiceData.bookingReference || invoiceData.invoiceNo || "DRAFT";
-
+        const bookingRef = invoiceData.bookingReference || invoiceData.invoiceNo;
+        if (!bookingRef) {
+          toast.error("Booking reference or invoice number is required.");
+          setUploading(false);
+          return;
+        } 
         const currentDate = new Date().toISOString().split("T")[0];
         const safeRef = String(bookingRef).replace(/[^\w\-]+/g, "_");
         const fileName = `${safeRef}-invoice-${currentDate}.pdf`;
@@ -208,23 +211,24 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
         }
 
         // Save invoice record
-        const saveInvoiceRes = await api.post("/invoice/saveInvoiceDetails", {
+        const body = {
           userId,
           pdfUrl: cloudinaryUrl,
-          template: { _id: templateId },
+          templateId,  
           invoiceDetails: {
             bookingReference: bookingRef,
-            // retain your existing fields
             passengerName: invoiceData.passengerName,
-            passengers: invoiceData.passengers || [],
+            passengers: Array.isArray(invoiceData.passengers) ? invoiceData.passengers : [],
           },
           priceDetails: {
-            totalAmount: invoiceData.totalAmount,
-            transactionId: invoiceData.transactionId,
-            currency: invoiceData.currency,
-            paymentMethod: invoiceData.paymentMethod,
+            totalAmount: Number(invoiceData.totalAmount) || 0,
+            transactionId: String(invoiceData.transactionId || ""),
+            currency: String(invoiceData.currency || "USD"),
+            paymentMethod: String(invoiceData.paymentMethod || ""),
           },
-        });
+        };
+        const saveInvoiceRes = await api.post("/invoice/saveInvoiceDetails", body);
+            
 
         onSave?.({
           template: updatedTemplate,
@@ -252,6 +256,8 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
       navigate("/dashboard/templates");
     } catch (err) {
       console.error("Failed to save template or PDF:", err);
+      console.error("saveInvoiceDetails error payload:", body);
+      console.error("saveInvoiceDetails response:", err.response?.status, err.response?.data);
       const msg =
         err?.response?.data?.message ||
         err?.message ||
