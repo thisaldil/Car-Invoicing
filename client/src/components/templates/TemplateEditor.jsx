@@ -218,7 +218,13 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           template: { _id: templateId },
           invoiceDetails: {
             bookingReference: bookingRef,
-            passengerName: invoiceData.passengerName,
+            passengerName: Array.isArray(invoiceData.passengerName)
+              ? invoiceData.passengerName
+              : [
+                  String(
+                    invoiceData.passengerName || invoiceData.consigneeName || ""
+                  ),
+                ],
             passengers: Array.isArray(invoiceData.passengers)
               ? invoiceData.passengers
               : [],
