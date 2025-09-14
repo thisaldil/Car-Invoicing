@@ -211,35 +211,74 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           templateId = created?.data?._id;
         }
 
-        // Save invoice record
-        saveInvoicePayload = {
-          userId,
-          pdfUrl: cloudinaryUrl,
-          template: { _id: templateId },
-          invoiceDetails: {
-            bookingReference: bookingRef,
-            passengerName: Array.isArray(invoiceData.passengerName)
-              ? invoiceData.passengerName
-              : [
-                  String(
-                    invoiceData.passengerName || invoiceData.consigneeName || ""
-                  ),
-                ],
-            passengers: Array.isArray(invoiceData.passengers)
-              ? invoiceData.passengers
-              : [],
-          },
-          priceDetails: {
-            totalAmount: Number(invoiceData.totalAmount) || 0,
-            transactionId: String(invoiceData.transactionId || ""),
-            currency: String(invoiceData.currency || "USD"),
-            paymentMethod: String(invoiceData.paymentMethod || ""),
-          },
-        };
-        const saveInvoiceRes = await api.post(
-          "/invoice/saveInvoiceDetails",
-          saveInvoicePayload
-        );
+        // Determine if this is a car invoice or airline invoice
+        const isCarInvoice =
+          invoiceData.items &&
+          invoiceData.items.length > 0 &&
+          invoiceData.items[0].make;
+
+        let saveInvoiceRes;
+        if (isCarInvoice) {
+          // Save car invoice record
+          saveInvoicePayload = {
+            userId,
+            pdfUrl: cloudinaryUrl,
+            template: { _id: templateId },
+            invoiceType: invoiceData.invoiceType || "type1",
+            carInvoiceDetails: {
+              consigneeName: invoiceData.consigneeName || "",
+              addressLine1: invoiceData.addressLine1 || "",
+              addressLine2: invoiceData.addressLine2 || "",
+              addressLine3: invoiceData.addressLine3 || "",
+              invoiceNo: invoiceData.invoiceNo || "",
+              description: invoiceData.description || "",
+              items: invoiceData.items || [],
+            },
+            priceDetails: {
+              totalAmount: String(
+                invoiceData.totalCIF || invoiceData.totalAmount || 0
+              ),
+              transactionId: String(invoiceData.transactionId || ""),
+              paymentMethod: String(invoiceData.paymentMethod || ""),
+            },
+          };
+          saveInvoiceRes = await api.post(
+            "/invoice/saveCarInvoiceDetails",
+            saveInvoicePayload
+          );
+        } else {
+          // Save airline invoice record
+          saveInvoicePayload = {
+            userId,
+            pdfUrl: cloudinaryUrl,
+            template: { _id: templateId },
+            invoiceDetails: {
+              bookingReference: bookingRef,
+              passengerName: Array.isArray(invoiceData.passengerName)
+                ? invoiceData.passengerName
+                : [
+                    String(
+                      invoiceData.passengerName ||
+                        invoiceData.consigneeName ||
+                        ""
+                    ),
+                  ],
+              passengers: Array.isArray(invoiceData.passengers)
+                ? invoiceData.passengers
+                : [],
+            },
+            priceDetails: {
+              totalAmount: Number(invoiceData.totalAmount) || 0,
+              transactionId: String(invoiceData.transactionId || ""),
+              currency: String(invoiceData.currency || "USD"),
+              paymentMethod: String(invoiceData.paymentMethod || ""),
+            },
+          };
+          saveInvoiceRes = await api.post(
+            "/invoice/saveInvoiceDetails",
+            saveInvoicePayload
+          );
+        }
 
         onSave?.({
           template: updatedTemplate,

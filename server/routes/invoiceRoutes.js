@@ -60,6 +60,11 @@ router.post(
   authRequired,
   invoiceController.saveInvoiceDetails
 );
+router.post(
+  "/saveCarInvoiceDetails",
+  authRequired,
+  invoiceController.saveCarInvoiceDetails
+);
 router.get(
   "/getInvoiceDetailsByUserId/:userId",
   authRequired,

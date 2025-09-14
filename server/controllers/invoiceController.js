@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require("uuid");
 const nodemailer = require("nodemailer");
 const Invoice = require("../models/Invoice");
 const axios = require("axios");
+const { validateCarInvoiceSchema } = require("../utils/invoiceValidator");
 
 //upload invoice and perform OCR
 exports.uploadInvoice = async (req, res) => {
@@ -88,6 +89,74 @@ exports.saveInvoiceDetails = async (req, res) => {
     res.status(201).json({ message: "Invoice saved successfully", invoice });
   } catch (err) {
     console.error("Error saving invoice:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+//save car invoice details
+exports.saveCarInvoiceDetails = async (req, res) => {
+  const {
+    userId,
+    pdfUrl,
+    template,
+    carInvoiceDetails,
+    priceDetails,
+    invoiceType,
+  } = req.body;
+
+  // Verify the requesting user owns this data
+  if (req.userId !== userId) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  if (
+    !userId ||
+    !pdfUrl ||
+    !template?._id ||
+    !carInvoiceDetails?.consigneeName ||
+    !carInvoiceDetails?.invoiceNo ||
+    !carInvoiceDetails?.items ||
+    !priceDetails ||
+    !invoiceType
+  ) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    // Validate car invoice data
+    const validatedCarInvoiceDetails =
+      validateCarInvoiceSchema(carInvoiceDetails);
+
+    const invoice = new Invoice({
+      userId,
+      pdfUrl,
+      invoiceType,
+      template: {
+        _id: template._id,
+        company: {
+          name: template.company.name,
+          logo: template.company.logo,
+          address: template.company.address,
+        },
+      },
+      carInvoiceDetails: validatedCarInvoiceDetails,
+      priceDetails: {
+        totalAmount: priceDetails.totalAmount,
+        paymentMethod: priceDetails.paymentMethod,
+        transactionId: priceDetails.transactionId,
+      },
+    });
+
+    await invoice.save();
+
+    res
+      .status(201)
+      .json({ message: "Car invoice saved successfully", invoice });
+  } catch (err) {
+    console.error("Error saving car invoice:", err);
+    if (err.message.includes("Invalid data")) {
+      return res.status(400).json({ error: err.message });
+    }
     res.status(500).json({ error: "Internal server error" });
   }
 };

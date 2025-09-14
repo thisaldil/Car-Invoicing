@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react"
-import { PlusIcon, TrashIcon } from "lucide-react"
+import React, { useMemo, useState } from "react";
+import { PlusIcon, TrashIcon } from "lucide-react";
 
 export default function ProformaInvoiceForm({ onSave }) {
   const [invoice, setInvoice] = useState({
@@ -10,6 +10,7 @@ export default function ProformaInvoiceForm({ onSave }) {
     invoiceNo: "",
     date: new Date().toISOString().slice(0, 10),
     description: "USED MOTOR VEHICLES",
+    invoiceType: "type1",
     items: [
       {
         make: "",
@@ -24,33 +25,32 @@ export default function ProformaInvoiceForm({ onSave }) {
         cif: "",
       },
     ],
-  })
+  });
 
   const totalCIF = useMemo(
     () =>
       invoice.items.reduce((sum, r) => {
-        const cif = toNum(r.cif)
-        return sum + (isFinite(cif) ? cif : 0)
+        const cif = toNum(r.cif);
+        return sum + (isFinite(cif) ? cif : 0);
       }, 0),
     [invoice.items]
-  )
+  );
 
   const handleItemChange = (index, key, value) => {
     setInvoice((prev) => {
-      const next = { ...prev }
+      const next = { ...prev };
       next.items = prev.items.map((it, i) =>
         i === index ? { ...it, [key]: value } : it
-      )
+      );
       if (["fob", "insurance", "freight"].includes(key)) {
-        const row = next.items[index]
-        const cif =
-          toNum(row.fob) + toNum(row.insurance) + toNum(row.freight)
+        const row = next.items[index];
+        const cif = toNum(row.fob) + toNum(row.insurance) + toNum(row.freight);
         next.items[index].cif =
-          Number.isFinite(cif) && cif > 0 ? String(cif) : ""
+          Number.isFinite(cif) && cif > 0 ? String(cif) : "";
       }
-      return next
-    })
-  }
+      return next;
+    });
+  };
 
   const addRow = () =>
     setInvoice((prev) => ({
@@ -70,13 +70,13 @@ export default function ProformaInvoiceForm({ onSave }) {
           cif: "",
         },
       ],
-    }))
+    }));
 
   const removeRow = (index) =>
     setInvoice((prev) => ({
       ...prev,
       items: prev.items.filter((_, i) => i !== index),
-    }))
+    }));
 
   return (
     <div className="space-y-8">
@@ -110,6 +110,23 @@ export default function ProformaInvoiceForm({ onSave }) {
             value={invoice.description}
             onChange={(v) => setInvoice((s) => ({ ...s, description: v }))}
           />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Invoice Type <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={invoice.invoiceType}
+              onChange={(e) =>
+                setInvoice((s) => ({ ...s, invoiceType: e.target.value }))
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              required
+            >
+              <option value="type1">Type 1</option>
+              <option value="type2">Type 2</option>
+              <option value="type3">Type 3</option>
+            </select>
+          </div>
           <Field
             label="Address Line 1"
             value={invoice.addressLine1}
@@ -283,10 +300,17 @@ export default function ProformaInvoiceForm({ onSave }) {
         </button>
       </div>
     </div>
-  )
+  );
 }
 
-function Field({ label, value, onChange, placeholder, required, type = "text" }) {
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  required,
+  type = "text",
+}) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -301,17 +325,17 @@ function Field({ label, value, onChange, placeholder, required, type = "text" })
         required={required}
       />
     </div>
-  )
+  );
 }
 
 function toNum(x) {
-  const n = typeof x === "string" ? Number(x.replace(/,/g, "")) : Number(x)
-  return Number.isFinite(n) ? n : 0
+  const n = typeof x === "string" ? Number(x.replace(/,/g, "")) : Number(x);
+  return Number.isFinite(n) ? n : 0;
 }
 
 function formatMoney(n) {
   return new Intl.NumberFormat(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(n || 0)
+  }).format(n || 0);
 }
