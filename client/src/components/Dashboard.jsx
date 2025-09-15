@@ -78,7 +78,8 @@ function Dashboard({ setGeneratedInvoice }) {
         });
 
         const currentRevenue = currentMonthInvoices.reduce(
-          (sum, inv) => sum + parseFloat(inv.priceDetails?.totalAmount || 0),
+          (sum, inv) =>
+            sum + (parseFloat(inv.invoiceDetails?.items?.[0]?.cif) || 0),
           0
         );
 
