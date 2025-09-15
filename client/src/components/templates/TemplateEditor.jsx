@@ -91,14 +91,14 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const checkDuplicateInvoice = async (userId, bookingRef) => {
+  const checkDuplicateInvoice = async (userId, invoiceNo) => {
     try {
       const { data } = await api.get(
         `/invoice/getInvoiceDetailsByUserId/${userId}`
       );
       return (
         Array.isArray(data) &&
-        data.some((inv) => inv?.invoiceDetails?.bookingReference === bookingRef)
+        data.some((inv) => inv?.invoiceDetails?.invoiceNo === invoiceNo)
       );
     } catch (error) {
       if (error?.response?.status === 404) {
@@ -131,23 +131,22 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
     try {
       // --- INVOICE GENERATION MODE ---
       if (invoiceData) {
-        // Prefer bookingReference; fall back to invoiceNo; else DRAFT
-        const bookingRef =
-          invoiceData.bookingReference || invoiceData.invoiceNo;
-        if (!bookingRef) {
-          toast.error("Booking reference or invoice number is required.");
+        // Use invoiceNo for car invoices
+        const invoiceNo = invoiceData.invoiceNo;
+        if (!invoiceNo) {
+          toast.error("Invoice number is required.");
           setUploading(false);
           return;
         }
         const currentDate = new Date().toISOString().split("T")[0];
-        const safeRef = String(bookingRef).replace(/[^\w\-]+/g, "_");
+        const safeRef = String(invoiceNo).replace(/[^\w\-]+/g, "_");
         const fileName = `${safeRef}-invoice-${currentDate}.pdf`;
 
-        // Duplicate check only if we have a real bookingRef
+        // Duplicate check only if we have a real invoiceNo
         let duplicateExists = false;
-        if (bookingRef && bookingRef !== "DRAFT") {
+        if (invoiceNo && invoiceNo !== "DRAFT") {
           try {
-            duplicateExists = await checkDuplicateInvoice(userId, bookingRef);
+            duplicateExists = await checkDuplicateInvoice(userId, invoiceNo);
           } catch (err) {
             toast.error(err.message || "Duplicate check failed");
             setUploading(false);
@@ -157,14 +156,14 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
 
         if (duplicateExists) {
           const confirmed = window.confirm(
-            "An invoice with the same booking reference already exists. Do you want to continue anyway?"
+            "An invoice with the same invoice number already exists. Do you want to continue anyway?"
           );
           if (!confirmed) {
             toast.error("Invoice creation cancelled.");
             setUploading(false);
             return;
           } else {
-            toast.warning("Proceeding despite duplicate booking reference.");
+            toast.warning("Proceeding despite duplicate invoice number.");
           }
         }
 
@@ -211,74 +210,33 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           templateId = created?.data?._id;
         }
 
-        // Determine if this is a car invoice or airline invoice
-        const isCarInvoice =
-          invoiceData.items &&
-          invoiceData.items.length > 0 &&
-          invoiceData.items[0].make;
-
-        let saveInvoiceRes;
-        if (isCarInvoice) {
-          // Save car invoice record
-          saveInvoicePayload = {
-            userId,
-            pdfUrl: cloudinaryUrl,
-            template: { _id: templateId },
-            invoiceType: invoiceData.invoiceType || "type1",
-            carInvoiceDetails: {
-              consigneeName: invoiceData.consigneeName || "",
-              addressLine1: invoiceData.addressLine1 || "",
-              addressLine2: invoiceData.addressLine2 || "",
-              addressLine3: invoiceData.addressLine3 || "",
-              invoiceNo: invoiceData.invoiceNo || "",
-              description: invoiceData.description || "",
-              items: invoiceData.items || [],
-            },
-            priceDetails: {
-              totalAmount: String(
-                invoiceData.totalCIF || invoiceData.totalAmount || 0
-              ),
-              transactionId: String(invoiceData.transactionId || ""),
-              paymentMethod: String(invoiceData.paymentMethod || ""),
-            },
-          };
-          saveInvoiceRes = await api.post(
-            "/invoice/saveCarInvoiceDetails",
-            saveInvoicePayload
-          );
-        } else {
-          // Save airline invoice record
-          saveInvoicePayload = {
-            userId,
-            pdfUrl: cloudinaryUrl,
-            template: { _id: templateId },
-            invoiceDetails: {
-              bookingReference: bookingRef,
-              passengerName: Array.isArray(invoiceData.passengerName)
-                ? invoiceData.passengerName
-                : [
-                    String(
-                      invoiceData.passengerName ||
-                        invoiceData.consigneeName ||
-                        ""
-                    ),
-                  ],
-              passengers: Array.isArray(invoiceData.passengers)
-                ? invoiceData.passengers
-                : [],
-            },
-            priceDetails: {
-              totalAmount: Number(invoiceData.totalAmount) || 0,
-              transactionId: String(invoiceData.transactionId || ""),
-              currency: String(invoiceData.currency || "USD"),
-              paymentMethod: String(invoiceData.paymentMethod || ""),
-            },
-          };
-          saveInvoiceRes = await api.post(
-            "/invoice/saveInvoiceDetails",
-            saveInvoicePayload
-          );
-        }
+        // Save car invoice record
+        saveInvoicePayload = {
+          userId,
+          pdfUrl: cloudinaryUrl,
+          template: { _id: templateId },
+          invoiceType: invoiceData.invoiceType || "type1",
+          invoiceDetails: {
+            consigneeName: invoiceData.consigneeName || "",
+            addressLine1: invoiceData.addressLine1 || "",
+            addressLine2: invoiceData.addressLine2 || "",
+            addressLine3: invoiceData.addressLine3 || "",
+            invoiceNo: invoiceData.invoiceNo || "",
+            description: invoiceData.description || "",
+            items: invoiceData.items || [],
+          },
+          priceDetails: {
+            totalAmount: String(
+              invoiceData.totalCIF || invoiceData.totalAmount || 0
+            ),
+            transactionId: String(invoiceData.transactionId || ""),
+            paymentMethod: String(invoiceData.paymentMethod || ""),
+          },
+        };
+        const saveInvoiceRes = await api.post(
+          "/invoice/saveInvoiceDetails",
+          saveInvoicePayload
+        );
 
         onSave?.({
           template: updatedTemplate,
@@ -350,7 +308,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
     header: useRef(null), // letterhead
     info: useRef(null), // middle: proforma content
     pricing: useRef(null), // kept for compatibility (unused in new layout)
-    flights: useRef(null), // kept for compatibility (unused in new layout)
+    // Removed unused refs
     footer: useRef(null), // bottom: terms & conditions
   };
 

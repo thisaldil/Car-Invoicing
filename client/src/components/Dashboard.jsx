@@ -37,7 +37,7 @@ function Dashboard({ setGeneratedInvoice }) {
     const fetchInvoices = async () => {
       try {
         const res = await axios.get(
-          `https://air-invoice-server.vercel.app/invoice/getAllInvoices`
+          `https://car-invoicing.vercel.app/invoice/getInvoiceDetailsByUserId/${userId}`
         );
 
         const allInvoices = res.data.map((inv) => ({
@@ -76,19 +76,15 @@ function Dashboard({ setGeneratedInvoice }) {
           );
         });
 
-        const currentRevenue = currentMonthInvoices
-          .filter((inv) => inv.invoiceDetails?.type === "invoice")
-          .reduce(
-            (sum, inv) => sum + parseFloat(inv.priceDetails?.totalAmount || 0),
-            0
-          );
+        const currentRevenue = currentMonthInvoices.reduce(
+          (sum, inv) => sum + parseFloat(inv.priceDetails?.totalAmount || 0),
+          0
+        );
 
-        const previousRevenue = lastMonthInvoicesFiltered
-          .filter((inv) => inv.invoiceDetails?.type === "invoice")
-          .reduce(
-            (sum, inv) => sum + parseFloat(inv.priceDetails?.totalAmount || 0),
-            0
-          );
+        const previousRevenue = lastMonthInvoicesFiltered.reduce(
+          (sum, inv) => sum + parseFloat(inv.priceDetails?.totalAmount || 0),
+          0
+        );
 
         setAllInvoices(allInvoices);
         setMonthlyInvoices(currentMonthInvoices);
@@ -221,7 +217,7 @@ function Dashboard({ setGeneratedInvoice }) {
             <div className="ml-4 text-left">
               <h3 className="text-xl font-semibold">Create a New Invoice</h3>
               <p className="text-sm text-white text-opacity-90">
-                Create a new invoice from airline ticket
+                Create a new car invoice
               </p>
             </div>
           </div>
@@ -301,12 +297,10 @@ function Dashboard({ setGeneratedInvoice }) {
                   className="border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <td className="py-4 px-4 text-sm text-gray-800 dark:text-white">
-                    {invoice.invoiceDetails.type === "invoice"
-                      ? "Invoice"
-                      : "Quotation"}
+                    {invoice.invoiceType || "Invoice"}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-800 dark:text-white">
-                    {invoice.invoiceDetails.passengerName[0]}...
+                    {invoice.invoiceDetails?.consigneeName || "N/A"}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-600 dark:text-white">
                     {invoice.date}

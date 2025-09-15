@@ -22,9 +22,7 @@ const PdfInvoice = ({ invoiceData, templateData }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            {company.logo && (
-              <Image src={company.logo} style={styles.logo} />
-            )}
+            {company.logo && <Image src={company.logo} style={styles.logo} />}
             <Text style={{ ...styles.companyName, color: accentColor }}>
               {company.name || ""}
             </Text>
@@ -33,112 +31,118 @@ const PdfInvoice = ({ invoiceData, templateData }) => {
             <Text style={{ ...styles.invoiceTitle, color: accentColor }}>
               INVOICE
             </Text>
-            <Text style={styles.bookingRef}>
-              Booking Ref: {invoiceData?.bookingReference || ""}
+            <Text style={styles.invoiceRef}>
+              Invoice No: {invoiceData?.invoiceNo || ""}
             </Text>
             <Text style={styles.date}>
-              {new Date().toLocaleDateString("en-US", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
+              Date:{" "}
+              {invoiceData?.date ||
+                new Date().toLocaleDateString("en-US", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
             </Text>
           </View>
         </View>
+
         {/* Company & Client Info */}
         <View style={styles.infoSection}>
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>From</Text>
             <Text style={styles.infoText}>
-              {company.address || "123 Business Street\nCity, State 12345\nPhone: (123) 456-7890\nEmail: info@yourcompany.com"}
+              {company.address ||
+                "123 Business Street\nCity, State 12345\nPhone: (123) 456-7890\nEmail: info@yourcompany.com"}
             </Text>
           </View>
           <View style={styles.infoBlock}>
-            {Array.isArray(invoiceData?.passengerName) && invoiceData.passengerName.length > 0 ? (
-              invoiceData.passengerName.map((name, idx) => (
-                <View key={idx} style={styles.passengerBlock}>
-                  <Text style={styles.passengerName}>{name}</Text>
-                  <Text style={styles.passengerDetail}>Passport: {invoiceData.passengers?.[idx]?.passportNumber || "--"}</Text>
-                  <Text style={styles.passengerDetail}>Nationality: {invoiceData.passengers?.[idx]?.nationality || "--"}</Text>
-                  <Text style={styles.passengerDetail}>DOB: {invoiceData.passengers?.[idx]?.dob || "--"}</Text>
-                  <Text style={styles.passengerDetail}>Gender: {invoiceData.passengers?.[idx]?.gender || "--"}</Text>
-                </View>
-              ))
-            ) : (
-              <Text style={styles.infoText}>No passenger details available.</Text>
-            )}
+            <Text style={styles.infoLabel}>To</Text>
+            <Text style={styles.infoText}>
+              {invoiceData?.consigneeName || "Consignee Name"}
+              {invoiceData?.addressLine1 && `\n${invoiceData.addressLine1}`}
+              {invoiceData?.addressLine2 && `\n${invoiceData.addressLine2}`}
+              {invoiceData?.addressLine3 && `\n${invoiceData.addressLine3}`}
+            </Text>
           </View>
         </View>
-        {/* Flight Details */}
+
+        {/* Vehicle Details */}
         <View style={styles.section}>
-          <Text style={{ ...styles.sectionTitle, color: accentColor }}>
-            Flight Details
-          </Text>
-          {invoiceData?.flightDetails?.map((flight, i) => (
-            <View key={i} style={styles.flightBlock}>
-              <View style={styles.flightHeader}>
-                <Text style={styles.flightNumber}>
-                  {flight.flightNumber || `Flight #${i + 1}`}
-                </Text>
-                <Text style={{ ...styles.flightClass, color: accentColor }}>
-                  {flight.class}
-                </Text>
-              </View>
-              <View style={styles.flightInfoRow}>
-                <View style={styles.flightInfoCol}>
-                  <Text style={styles.flightLabel}>From</Text>
-                  <Text style={styles.flightValue}>{flight.from}</Text>
-                  <Text style={styles.flightDate}>
-                    {flight.departureDate} at {flight.departureTime}
-                  </Text>
-                </View>
-                <View style={styles.flightInfoCol}>
-                  <Text style={styles.flightLabel}>To</Text>
-                  <Text style={styles.flightValue}>{flight.to}</Text>
-                  <Text style={styles.flightDate}>
-                    {flight.arrivalDate} at {flight.arrivalTime}
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.flightFooter}>
-                Airline: {flight.airline || "-"} | Terminal: {flight.departureTerminal || "-"}
-              </Text>
+          <Text style={styles.sectionTitle}>Vehicle Details</Text>
+          <View style={styles.table}>
+            <View style={styles.tableHeader}>
+              <Text style={styles.tableHeaderText}>#</Text>
+              <Text style={styles.tableHeaderText}>Make</Text>
+              <Text style={styles.tableHeaderText}>Model</Text>
+              <Text style={styles.tableHeaderText}>Chassis No</Text>
+              <Text style={styles.tableHeaderText}>Year</Text>
+              <Text style={styles.tableHeaderText}>HS Code</Text>
+              <Text style={styles.tableHeaderText}>Qty</Text>
+              <Text style={styles.tableHeaderText}>FOB</Text>
+              <Text style={styles.tableHeaderText}>Insurance</Text>
+              <Text style={styles.tableHeaderText}>Freight</Text>
+              <Text style={styles.tableHeaderText}>CIF</Text>
             </View>
-          ))}
+            {invoiceData?.items?.map((item, i) => (
+              <View key={i} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{i + 1}</Text>
+                <Text style={styles.tableCell}>{item.make || "-"}</Text>
+                <Text style={styles.tableCell}>{item.model || "-"}</Text>
+                <Text style={styles.tableCell}>{item.chassisNo || "-"}</Text>
+                <Text style={styles.tableCell}>{item.year || "-"}</Text>
+                <Text style={styles.tableCell}>{item.hsCode || "-"}</Text>
+                <Text style={styles.tableCell}>{item.qty || "-"}</Text>
+                <Text style={styles.tableCell}>{formatMoney(item.fob)}</Text>
+                <Text style={styles.tableCell}>
+                  {formatMoney(item.insurance)}
+                </Text>
+                <Text style={styles.tableCell}>
+                  {formatMoney(item.freight)}
+                </Text>
+                <Text style={styles.tableCell}>{formatMoney(item.cif)}</Text>
+              </View>
+            ))}
+          </View>
         </View>
-        {/* Pricing */}
+
+        {/* Pricing Summary */}
         <View style={styles.section}>
-          <Text style={{ ...styles.sectionTitle, color: accentColor }}>
-            Pricing Details
-          </Text>
+          <Text style={styles.sectionTitle}>Pricing Summary</Text>
           <View style={styles.pricingRow}>
-            <Text style={styles.pricingLabel}>Total Amount</Text>
+            <Text style={styles.pricingLabel}>Total CIF:</Text>
             <Text style={styles.pricingValue}>
-              {invoiceData?.currency || "USD"} {invoiceData?.totalAmount || "--"}
-            </Text>
-          </View>
-          <View style={styles.pricingRow}>
-            <Text style={styles.pricingLabel}>Payment Method</Text>
-            <Text style={styles.pricingValue}>
-              {invoiceData?.paymentMethod || "--"}
-            </Text>
-          </View>
-          <View style={styles.pricingRow}>
-            <Text style={styles.pricingLabel}>Transaction ID</Text>
-            <Text style={styles.pricingValue}>
-              {invoiceData?.transactionId || "--"}
+              {formatMoney(invoiceData?.totalCIF || 0)}
             </Text>
           </View>
         </View>
+
+        {/* Terms and Conditions */}
+        {design.termsText && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Terms and Conditions</Text>
+            <Text style={styles.termsText}>{design.termsText}</Text>
+          </View>
+        )}
+
         {/* Footer */}
         {showFooter && (
-          <View style={{ ...styles.footer, backgroundColor: accentColor + "20" }}>
+          <View style={styles.footer}>
             <Text style={styles.footerText}>{footerText}</Text>
           </View>
         )}
       </Page>
     </Document>
   );
+};
+
+const formatMoney = (amount) => {
+  const num = parseFloat(amount) || 0;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(num);
 };
 
 const styles = StyleSheet.create({
@@ -179,7 +183,7 @@ const styles = StyleSheet.create({
     fontWeight: "medium",
     marginBottom: 4,
   },
-  bookingRef: {
+  invoiceRef: {
     color: "#666",
     marginBottom: 2,
   },
@@ -207,20 +211,6 @@ const styles = StyleSheet.create({
     color: "#222",
     whiteSpace: "pre-line",
   },
-  passengerBlock: {
-    marginBottom: 6,
-    borderBottom: "1 solid #eee",
-    paddingBottom: 4,
-  },
-  passengerName: {
-    fontWeight: "medium",
-    fontSize: 11,
-    marginBottom: 2,
-  },
-  passengerDetail: {
-    fontSize: 10,
-    color: "#444",
-  },
   section: {
     marginBottom: 16,
     borderBottom: "1 solid #eee",
@@ -231,73 +221,64 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 8,
   },
-  flightBlock: {
+  table: {
+    width: "100%",
+  },
+  tableHeader: {
+    flexDirection: "row",
     backgroundColor: "#f8fafc",
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 8,
+    borderBottom: "1 solid #e2e8f0",
   },
-  flightHeader: {
+  tableHeaderText: {
+    fontSize: 9,
+    fontWeight: "medium",
+    padding: 6,
+    textAlign: "center",
+    borderRight: "1 solid #e2e8f0",
+    flex: 1,
+  },
+  tableRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
+    borderBottom: "1 solid #e2e8f0",
   },
-  flightNumber: {
-    fontWeight: "medium",
-    fontSize: 12,
-  },
-  flightClass: {
-    fontSize: 11,
-    fontWeight: "medium",
-  },
-  flightInfoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 2,
-  },
-  flightInfoCol: {
-    width: "48%",
-  },
-  flightLabel: {
-    fontSize: 10,
-    color: "#888",
-  },
-  flightValue: {
-    fontSize: 11,
-    fontWeight: "medium",
-  },
-  flightDate: {
-    fontSize: 10,
-    color: "#444",
-  },
-  flightFooter: {
-    fontSize: 10,
-    color: "#555",
-    marginTop: 2,
+  tableCell: {
+    fontSize: 9,
+    padding: 6,
+    textAlign: "center",
+    borderRight: "1 solid #e2e8f0",
+    flex: 1,
   },
   pricingRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 4,
+    alignItems: "center",
+    paddingVertical: 8,
   },
   pricingLabel: {
-    color: "#666",
-    fontSize: 11,
+    fontSize: 12,
+    fontWeight: "medium",
   },
   pricingValue: {
-    fontWeight: "medium",
-    fontSize: 11,
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  termsText: {
+    fontSize: 10,
+    color: "#666",
+    lineHeight: 1.4,
   },
   footer: {
-    marginTop: 24,
-    padding: 12,
-    borderRadius: 4,
+    position: "absolute",
+    bottom: 20,
+    left: 32,
+    right: 32,
     textAlign: "center",
+    borderTop: "1 solid #eee",
+    paddingTop: 8,
   },
   footerText: {
-    color: "#333",
-    fontSize: 11,
-    textAlign: "center",
+    fontSize: 9,
+    color: "#888",
   },
 });
 

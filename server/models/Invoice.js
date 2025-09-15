@@ -20,21 +20,8 @@ const invoiceSchema = new Schema(
         address: String,
       },
     },
-    // For airline invoices
+    // Car invoice details
     invoiceDetails: {
-      bookingReference: String,
-      passengerName: [String],
-      passengers: [
-        {
-          passportNumber: String,
-          nationality: String,
-          dob: String,
-          gender: String,
-        },
-      ],
-    },
-    // For car invoices
-    carInvoiceDetails: {
       consigneeName: String,
       addressLine1: String,
       addressLine2: String,

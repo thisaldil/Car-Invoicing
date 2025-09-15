@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require("uuid");
 const nodemailer = require("nodemailer");
 const Invoice = require("../models/Invoice");
 const axios = require("axios");
-const { validateCarInvoiceSchema } = require("../utils/invoiceValidator");
+const { validateInvoiceSchema } = require("../utils/invoiceValidator");
 
 //upload invoice and perform OCR
 exports.uploadInvoice = async (req, res) => {
@@ -41,65 +41,11 @@ exports.uploadInvoice = async (req, res) => {
 
 //save invoice details
 exports.saveInvoiceDetails = async (req, res) => {
-  const { userId, pdfUrl, template, invoiceDetails, priceDetails } = req.body;
-
-  // Verify the requesting user owns this data
-  if (req.userId !== userId) {
-    return res.status(403).json({ error: "Access denied" });
-  }
-
-  if (
-    !userId ||
-    !pdfUrl ||
-    !template?._id ||
-    !invoiceDetails?.bookingReference ||
-    !invoiceDetails?.passengerName ||
-    !invoiceDetails?.passengers ||
-    !priceDetails
-  ) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  try {
-    const invoice = new Invoice({
-      userId,
-      pdfUrl,
-      template: {
-        _id: template._id,
-        company: {
-          name: template.company.name,
-          logo: template.company.logo,
-          address: template.company.address,
-        },
-      },
-      invoiceDetails: {
-        bookingReference: invoiceDetails.bookingReference,
-        passengerName: invoiceDetails.passengerName,
-        passengers: invoiceDetails.passengers,
-      },
-      priceDetails: {
-        totalAmount: priceDetails.totalAmount,
-        paymentMethod: priceDetails.paymentMethod,
-        transactionId: priceDetails.transactionId,
-      },
-    });
-
-    await invoice.save();
-
-    res.status(201).json({ message: "Invoice saved successfully", invoice });
-  } catch (err) {
-    console.error("Error saving invoice:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-//save car invoice details
-exports.saveCarInvoiceDetails = async (req, res) => {
   const {
     userId,
     pdfUrl,
     template,
-    carInvoiceDetails,
+    invoiceDetails,
     priceDetails,
     invoiceType,
   } = req.body;
@@ -113,9 +59,9 @@ exports.saveCarInvoiceDetails = async (req, res) => {
     !userId ||
     !pdfUrl ||
     !template?._id ||
-    !carInvoiceDetails?.consigneeName ||
-    !carInvoiceDetails?.invoiceNo ||
-    !carInvoiceDetails?.items ||
+    !invoiceDetails?.consigneeName ||
+    !invoiceDetails?.invoiceNo ||
+    !invoiceDetails?.items ||
     !priceDetails ||
     !invoiceType
   ) {
@@ -123,9 +69,8 @@ exports.saveCarInvoiceDetails = async (req, res) => {
   }
 
   try {
-    // Validate car invoice data
-    const validatedCarInvoiceDetails =
-      validateCarInvoiceSchema(carInvoiceDetails);
+    // Validate invoice data
+    const validatedInvoiceDetails = validateInvoiceSchema(invoiceDetails);
 
     const invoice = new Invoice({
       userId,
@@ -139,7 +84,7 @@ exports.saveCarInvoiceDetails = async (req, res) => {
           address: template.company.address,
         },
       },
-      carInvoiceDetails: validatedCarInvoiceDetails,
+      invoiceDetails: validatedInvoiceDetails,
       priceDetails: {
         totalAmount: priceDetails.totalAmount,
         paymentMethod: priceDetails.paymentMethod,
@@ -149,11 +94,9 @@ exports.saveCarInvoiceDetails = async (req, res) => {
 
     await invoice.save();
 
-    res
-      .status(201)
-      .json({ message: "Car invoice saved successfully", invoice });
+    res.status(201).json({ message: "Invoice saved successfully", invoice });
   } catch (err) {
-    console.error("Error saving car invoice:", err);
+    console.error("Error saving invoice:", err);
     if (err.message.includes("Invalid data")) {
       return res.status(400).json({ error: err.message });
     }
@@ -302,27 +245,6 @@ exports.deleteInvoice = async (req, res) => {
   }
 };
 
-// exports.getRecentInvoices = async (req, res) => {
-//   try {
-//     const recentInvoices = await Invoice.find(
-//       {},
-//       {
-//         "invoiceDetails.passengerName": 1,
-//         "invoiceDetails.passportNumber": 1,
-//         "invoiceDetails.nationality": 1,
-//         "priceDetails.totalAmount": 1,
-//         createdAt: 1, // include this if you want date
-//       }
-//     )
-//       .sort({ createdAt: -1 })
-//       .limit(3);
-
-//     res.status(200).json(recentInvoices);
-//   } catch (err) {
-//     console.error("Error fetching recent invoices:", err);
-//     res.status(500).json({ error: "Failed to fetch recent invoices" });
-//   }
-// };
 exports.getRecentInvoices = async (req, res) => {
   try {
     const userId = req.user?._id;
@@ -334,9 +256,9 @@ exports.getRecentInvoices = async (req, res) => {
     const recentInvoices = await Invoice.find(
       { userId },
       {
-        "invoiceDetails.passengerName": 1,
-        "invoiceDetails.passportNumber": 1,
-        "invoiceDetails.nationality": 1,
+        "invoiceDetails.consigneeName": 1,
+        "invoiceDetails.invoiceNo": 1,
+        invoiceType: 1,
         "priceDetails.totalAmount": 1,
         createdAt: 1,
       }

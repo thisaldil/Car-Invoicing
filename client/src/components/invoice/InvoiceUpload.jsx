@@ -97,10 +97,10 @@ function InvoiceUpload({ onUpload }) {
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-800 mb-6 dark:text-white">
-        Upload Air Ticket
+        Upload Car Invoice
       </h1>
       <p className="text-gray-600 mb-8 dark:text-white">
-        Upload an air ticket to extract flight details.
+        Upload a car invoice document to extract details.
       </p>
 
       {!file ? (

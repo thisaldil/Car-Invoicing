@@ -32,16 +32,18 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
   }, [userId]);
 
   useEffect(() => {
-    const bookingRefCounts = {};
+    const invoiceNoCounts = {};
     invoices.forEach((inv) => {
-      const ref = inv.invoiceDetails?.bookingReference;
-      if (ref) {
-        bookingRefCounts[ref] = (bookingRefCounts[ref] || 0) + 1;
+      const invoiceNo = inv.invoiceDetails?.invoiceNo;
+      if (invoiceNo) {
+        invoiceNoCounts[invoiceNo] = (invoiceNoCounts[invoiceNo] || 0) + 1;
       }
     });
     setDuplicateRefs(
       new Set(
-        Object.keys(bookingRefCounts).filter((ref) => bookingRefCounts[ref] > 1)
+        Object.keys(invoiceNoCounts).filter(
+          (invoiceNo) => invoiceNoCounts[invoiceNo] > 1
+        )
       )
     );
   }, [invoices]);
@@ -52,18 +54,13 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
     } else {
       const term = search.toLowerCase();
       const filtered = invoices.filter((inv) => {
-        const names = inv?.invoiceDetails?.passengerName || [];
-        const passport = inv?.invoiceDetails?.passportNumber;
+        const consigneeName = inv?.invoiceDetails?.consigneeName || "";
+        const invoiceNo = inv?.invoiceDetails?.invoiceNo || "";
 
-        const nameMatch = Array.isArray(names)
-          ? names.some((name) => name.toLowerCase().includes(term))
-          : names?.toLowerCase().includes(term);
+        const nameMatch = consigneeName.toLowerCase().includes(term);
+        const invoiceNoMatch = invoiceNo.toLowerCase().includes(term);
 
-        const passportMatch = Array.isArray(passport)
-          ? passport.some((p) => p.toLowerCase().includes(term))
-          : passport?.toLowerCase().includes(term);
-
-        return nameMatch || passportMatch;
+        return nameMatch || invoiceNoMatch;
       });
       setFilteredInvoices(filtered);
     }
@@ -119,7 +116,7 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
         <div className="relative w-full max-w-md">
           <input
             type="text"
-            placeholder="Search by name or passport no..."
+            placeholder="Search by consignee name or invoice number..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md pl-10 placeholder-gray-400 dark:placeholder-gray-500"
@@ -166,42 +163,34 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
 
             <div className="p-4 text-sm text-gray-500 space-y-1 min-h-48">
               <div className="space-y-1">
-                {Array.isArray(invoice.invoiceDetails.passengerName) ? (
-                  invoice.invoiceDetails.passengerName.map((name, idx) => (
-                    <div key={idx}>
-                      <p className="font-semibold text-gray-800">{name}</p>
-                      <p className="text-gray-500 mb-2">
-                        <strong>Passport No:</strong>{" "}
-                        {invoice.invoiceDetails.passengers?.[idx]
-                          ?.passportNumber || "--"}
-                      </p>
-                      {idx <
-                        invoice.invoiceDetails.passengerName.length - 1 && (
-                        <hr />
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <>
-                    <p className="font-semibold text-gray-800">
-                      {invoice.invoiceDetails.passengerName}
-                    </p>
-                    <p className="text-gray-500">
-                      <strong>Passport No:</strong>{" "}
-                      {invoice.invoiceDetails.passportNumber || "--"}
-                    </p>
-                  </>
-                )}
+                <p className="font-semibold text-gray-800">
+                  {invoice.invoiceDetails?.consigneeName || "No consignee name"}
+                </p>
+                <p className="text-gray-500">
+                  <strong>Invoice No:</strong>{" "}
+                  {invoice.invoiceDetails?.invoiceNo || "--"}
+                </p>
+                <p className="text-gray-500">
+                  <strong>Type:</strong> {invoice.invoiceType || "--"}
+                </p>
+                <p className="text-gray-500">
+                  <strong>Items:</strong>{" "}
+                  {invoice.invoiceDetails?.items?.length || 0} vehicle(s)
+                </p>
+                <p className="text-gray-500">
+                  <strong>Total CIF:</strong>{" "}
+                  {invoice.priceDetails?.totalAmount || "--"}
+                </p>
               </div>
               <div className="mt-3 border-t justify-between items-center w-full">
                 <p>Invoice ID: {invoice._id}</p>
               </div>
             </div>
-            {duplicateRefs.has(invoice.invoiceDetails?.bookingReference) && (
+            {duplicateRefs.has(invoice.invoiceDetails?.invoiceNo) && (
               <div className="absolute bottom-2 right-2 bg-yellow-100 border border-yellow-400 text-yellow-700 text-xs font-medium px-2 py-1 rounded shadow-sm">
-                ⚠ Duplicate booking
+                ⚠ Duplicate invoice
                 <br />
-                Ref: {invoice.invoiceDetails?.bookingReference}
+                No: {invoice.invoiceDetails?.invoiceNo}
               </div>
             )}
           </div>
