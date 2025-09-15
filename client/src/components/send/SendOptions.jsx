@@ -9,6 +9,14 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+// Utility function for formatting money
+function formatMoney(n) {
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n || 0);
+}
+
 function SendOptions({ invoice, onBack }) {
   const [invoiceData, setInvoiceData] = useState(null);
   const [sendMethod, setSendMethod] = useState(null);
@@ -170,15 +178,122 @@ function SendOptions({ invoice, onBack }) {
               </button>
             )}
           </div>
-          <div className="p-4 flex justify-center">
+          <div className="p-4">
             {invoiceData?.pdfUrl ? (
-              <iframe
-                src={invoiceData.pdfUrl}
-                title="PDF Preview"
-                width="100%"
-                height="500px"
-                className="border rounded"
-              />
+              <div className="space-y-4">
+                {/* PDF Preview */}
+                <div className="flex justify-center">
+                  <iframe
+                    src={invoiceData.pdfUrl}
+                    title="PDF Preview"
+                    width="100%"
+                    height="500px"
+                    className="border rounded"
+                  />
+                </div>
+
+                {/* Invoice Details Summary */}
+                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                    Invoice Summary
+                  </h3>
+
+                  {/* Basic Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Invoice No:
+                      </span>
+                      <p className="text-gray-800 dark:text-white font-medium">
+                        {invoiceData?.invoiceDetails?.invoiceNo || "--"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Date:
+                      </span>
+                      <p className="text-gray-800 dark:text-white font-medium">
+                        {invoiceData?.invoiceDetails?.date || "--"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Consignee Info */}
+                  <div className="mb-4">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      Consignee:
+                    </span>
+                    <p className="text-gray-800 dark:text-white font-medium">
+                      {invoiceData?.invoiceDetails?.consigneeName || "--"}
+                    </p>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {[
+                        invoiceData?.invoiceDetails?.addressLine1,
+                        invoiceData?.invoiceDetails?.addressLine2,
+                        invoiceData?.invoiceDetails?.addressLine3,
+                      ]
+                        .filter(Boolean)
+                        .join(", ") || "No address provided"}
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="mb-4">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      Description:
+                    </span>
+                    <p className="text-gray-800 dark:text-white">
+                      {invoiceData?.invoiceDetails?.description ||
+                        "USED MOTOR VEHICLES"}
+                    </p>
+                  </div>
+
+                  {/* Items Summary */}
+                  {invoiceData?.invoiceDetails?.items &&
+                    invoiceData.invoiceDetails.items.length > 0 && (
+                      <div className="mb-4">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Vehicles ({invoiceData.invoiceDetails.items.length}):
+                        </span>
+                        <div className="mt-2 space-y-1">
+                          {invoiceData.invoiceDetails.items
+                            .slice(0, 3)
+                            .map((item, index) => (
+                              <div
+                                key={index}
+                                className="text-sm text-gray-700 dark:text-gray-300"
+                              >
+                                {index + 1}. {item.make || "N/A"}{" "}
+                                {item.model || "N/A"} ({item.year || "N/A"}) -
+                                Chassis: {item.chassisNo || "N/A"}
+                              </div>
+                            ))}
+                          {invoiceData.invoiceDetails.items.length > 3 && (
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              ... and{" "}
+                              {invoiceData.invoiceDetails.items.length - 3} more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Total Amount */}
+                  <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-medium text-gray-800 dark:text-white">
+                        Total Amount:
+                      </span>
+                      <span className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                        $
+                        {formatMoney(
+                          invoiceData?.priceDetails?.totalAmount || 0
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ) : (
               <p className="text-gray-500 dark:text-gray-300">
                 Loading preview...
