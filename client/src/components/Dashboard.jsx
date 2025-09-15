@@ -313,8 +313,9 @@ function Dashboard({ setGeneratedInvoice }) {
                     {invoice.date}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-800 font-medium dark:text-white">
-                    {invoice.invoiceDetails?.items.cif}
+                    {invoice.invoiceDetails?.items?.[0]?.cif || "-"}
                   </td>
+
                   <td className="py-4 px-4 text-right">
                     <button
                       onClick={() => handleSend(invoice)}
