@@ -149,6 +149,16 @@ const Settings = () => {
             </div>
           )}
 
+          {/* Add New User Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={() => navigate("/register")}
+              className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow"
+            >
+              Add New User
+            </button>
+          </div>
+
           {/* Account (Register / Sign-out) */}
           <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-xl shadow-md max-w-md mx-auto">
             <h2 className="text-xl font-bold mb-4 text-center">Account</h2>
