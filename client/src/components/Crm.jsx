@@ -7,7 +7,7 @@ const defaultTemplates = [
     title: "Promotions",
     category: "Marketing",
     description: "Special discount campaigns for customers.",
-    content: "<p>Get 20% off on all flights this weekend!</p>",
+    content: "<p>Get 20% off on all services this weekend!</p>",
   },
   {
     id: 2,
