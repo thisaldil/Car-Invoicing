@@ -1,6 +1,234 @@
 import React, { useMemo, useState } from "react";
 import { PlusIcon, TrashIcon } from "lucide-react";
 
+const MAKES = [
+  "TOYOTA",
+  "NISSAN",
+  "MAZDA",
+  "MITSUBISHI",
+  "HONDA",
+  "SUZUKI",
+  "SUBARU",
+  "ISUZU",
+  "DAIHATSU",
+  "MITSUOKA",
+  "LEXUS",
+  "ALFAROMEO",
+  "ASTON MARTIN",
+  "AUDI",
+  "BENTLEY",
+  "BMW",
+  "BMW ALPINA",
+  "CADILLAC",
+  "CHEVROLET",
+  "CHRYSLER",
+  "CITROEN",
+  "DAIMLER",
+  "DODGE",
+  "FERRARI",
+  "FIAT",
+  "FORD",
+  "FRUEHAUF",
+  "GM",
+  "GMC",
+  "HINO",
+  "HITACHI",
+  "HUMMER",
+  "HYUNDAI",
+  "ISEKI",
+  "JAGUAR",
+  "JEEP",
+  "KAWASAKI",
+  "KOMATSU",
+  "KUBOTA",
+  "LAMBORGHINI",
+  "LANCIA",
+  "LAND ROVER",
+  "LINCOLN",
+  "LOTUS",
+  "MASERATI",
+  "MERCEDES BENZ",
+  "MINI",
+  "MORGAN",
+  "PEUGEOT",
+  "PONTIAC",
+  "PORSCHE",
+  "RENAULT",
+  "ROLLS ROYCE",
+  "ROVER",
+  "SAAB",
+  "SMART",
+  "TADANO",
+  "TCM",
+  "TESLA",
+  "TRAILER",
+  "VOLKSWAGEN",
+  "VOLVO",
+  "WINNEBAGO",
+  "YAMAHA",
+  "YANMAR",
+  "OTHERS",
+];
+
+const MODELS_BY_MAKE = {
+  TOYOTA: [
+    "Corolla",
+    "Camry",
+    "Yaris",
+    "Aqua",
+    "Vitz",
+    "RAV4",
+    "Harrier",
+    "Land Cruiser",
+    "Prado",
+    "Hilux",
+    "Hiace",
+    "Crown",
+    "Premio",
+    "Allion",
+    "Axio",
+  ],
+  NISSAN: [
+    "Note",
+    "March",
+    "Serena",
+    "X-Trail",
+    "Skyline",
+    "Fuga",
+    "Elgrand",
+    "Juke",
+    "Dayz",
+    "Tiida",
+    "Bluebird Sylphy",
+    "NV350 Caravan",
+  ],
+  MAZDA: [
+    "Demio (2)",
+    "Axela (3)",
+    "Atenza (6)",
+    "CX-3",
+    "CX-5",
+    "CX-8",
+    "Roadster (MX-5)",
+    "Bongo",
+  ],
+  MITSUBISHI: [
+    "Outlander",
+    "RVR",
+    "Pajero",
+    "Delica D:5",
+    "EK Wagon",
+    "Lancer",
+    "Mirage",
+  ],
+  HONDA: [
+    "Fit (Jazz)",
+    "Civic",
+    "Accord",
+    "Vezel (HR-V)",
+    "CR-V",
+    "N-BOX",
+    "Freed",
+    "Stepwgn",
+  ],
+  SUZUKI: ["Swift", "Alto", "Wagon R", "Hustler", "Spacia", "Jimny", "Every"],
+  SUBARU: ["Impreza", "Legacy", "Forester", "XV", "Levorg", "Outback", "WRX"],
+  ISUZU: ["Elf", "Forward", "Giga", "D-MAX", "MU-X"],
+  DAIHATSU: ["Mira", "Tanto", "Move", "Hijet", "Rocky", "Copen"],
+  MITSUOKA: ["Viewt", "Himiko", "Galue"],
+  LEXUS: ["IS", "ES", "GS", "LS", "CT", "RX", "NX", "UX", "LX", "GX"],
+  ALFAROMEO: ["Giulietta", "Giulia", "Stelvio", "MiTo"],
+  "ASTON MARTIN": ["Vantage", "DB9", "DB11", "Rapide"],
+  AUDI: ["A3", "A4", "A6", "A8", "Q2", "Q3", "Q5", "Q7", "TT"],
+  BENTLEY: ["Continental GT", "Flying Spur", "Bentayga"],
+  BMW: [
+    "1 Series",
+    "3 Series",
+    "5 Series",
+    "7 Series",
+    "X1",
+    "X3",
+    "X5",
+    "i3",
+    "i8",
+  ],
+  "BMW ALPINA": ["B3", "B5", "B7", "D3"],
+  CADILLAC: ["CTS", "ATS", "Escalade", "XT5"],
+  CHEVROLET: ["Camaro", "Corvette", "Cruze", "Trailblazer"],
+  CHRYSLER: ["300", "Pacifica", "PT Cruiser"],
+  CITROEN: ["C3", "C4", "C5", "Berlingo", "DS3"],
+  DAIMLER: ["XJ", "Super V8"],
+  DODGE: ["Charger", "Challenger", "Durango", "Ram"],
+  FERRARI: ["458", "488", "California", "F8", "Portofino"],
+  FIAT: ["500", "Panda", "Punto", "500X"],
+  FORD: ["Focus", "Fiesta", "Mustang", "Explorer", "Ranger"],
+  FRUEHAUF: ["Trailer"],
+  GM: ["Sierra", "Silverado"],
+  GMC: ["Sierra", "Yukon", "Acadia", "Terrain"],
+  HINO: ["Dutro", "Ranger", "Profia"],
+  HITACHI: ["Excavator", "Wheel Loader"],
+  HUMMER: ["H1", "H2", "H3"],
+  HYUNDAI: ["i10", "i20", "Elantra", "Sonata", "Tucson", "Santa Fe"],
+  ISEKI: ["Tractor", "Combine"],
+  JAGUAR: ["XE", "XF", "XJ", "F-PACE", "E-PACE", "F-TYPE"],
+  JEEP: ["Wrangler", "Cherokee", "Grand Cherokee", "Renegade", "Compass"],
+  KAWASAKI: ["Ninja 250", "Ninja 400", "Z1000", "Versys"],
+  KOMATSU: ["Excavator", "Forklift", "Bulldozer"],
+  KUBOTA: ["Tractor", "Combine", "Excavator"],
+  LAMBORGHINI: ["Huracán", "Aventador", "Urus", "Gallardo"],
+  LANCIA: ["Ypsilon", "Delta", "Thema"],
+  "LAND ROVER": [
+    "Defender",
+    "Discovery",
+    "Range Rover",
+    "Range Rover Sport",
+    "Evoque",
+    "Velar",
+  ],
+  LINCOLN: ["MKZ", "Navigator", "Aviator", "Continental"],
+  LOTUS: ["Elise", "Exige", "Evora", "Emira"],
+  MASERATI: ["Ghibli", "Quattroporte", "Levante", "GranTurismo"],
+  "MERCEDES BENZ": [
+    "A-Class",
+    "C-Class",
+    "E-Class",
+    "S-Class",
+    "GLA",
+    "GLC",
+    "GLE",
+    "GLS",
+    "V-Class",
+  ],
+  MINI: ["One", "Cooper", "Clubman", "Countryman"],
+  MORGAN: ["4/4", "Plus 4", "Plus 8"],
+  PEUGEOT: ["208", "308", "508", "2008", "3008", "5008"],
+  PONTIAC: ["G6", "G8", "Firebird", "Trans Am"],
+  PORSCHE: [
+    "911",
+    "Cayman",
+    "Boxster",
+    "Panamera",
+    "Macan",
+    "Cayenne",
+    "Taycan",
+  ],
+  RENAULT: ["Clio", "Megane", "Talisman", "Captur", "Kadjar"],
+  "ROLLS ROYCE": ["Phantom", "Ghost", "Wraith", "Dawn", "Cullinan"],
+  ROVER: ["25", "45", "75", "Mini (classic)"],
+  SAAB: ["9-3", "9-5", "900"],
+  SMART: ["fortwo", "forfour"],
+  TADANO: ["Rough Terrain Crane", "All Terrain Crane"],
+  TCM: ["Forklift", "Reach Truck"],
+  TESLA: ["Model S", "Model 3", "Model X", "Model Y", "Cybertruck"],
+  TRAILER: ["Flatbed", "Box", "Reefer"],
+  VOLKSWAGEN: ["Polo", "Golf", "Passat", "Tiguan", "Touareg", "Transporter"],
+  VOLVO: ["S60", "S90", "V60", "V90", "XC40", "XC60", "XC90"],
+  WINNEBAGO: ["Brave", "Travato", "View"],
+  YAMAHA: ["YZF-R3", "MT-07", "MT-09", "NMAX"],
+  YANMAR: ["Tractor", "Combine Harvester"],
+  OTHERS: ["Other"],
+};
+
 export default function ProformaInvoiceForm({ onSave }) {
   const [invoice, setInvoice] = useState({
     consigneeName: "",
@@ -47,6 +275,12 @@ export default function ProformaInvoiceForm({ onSave }) {
         const cif = toNum(row.fob) + toNum(row.insurance) + toNum(row.freight);
         next.items[index].cif =
           Number.isFinite(cif) && cif > 0 ? String(cif) : "";
+      }
+      if (key === "make") {
+        const models = MODELS_BY_MAKE[value] || [];
+        if (!models.includes(next.items[index].model)) {
+          next.items[index].model = "";
+        }
       }
       return next;
     });
@@ -178,110 +412,134 @@ export default function ProformaInvoiceForm({ onSave }) {
               </tr>
             </thead>
             <tbody>
-              {invoice.items.map((row, i) => (
-                <tr key={i} className="text-gray-900 dark:text-gray-100">
-                  <td className="border px-2 py-1">{i + 1}</td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="text"
-                      value={row.make}
-                      onChange={(e) =>
-                        handleItemChange(i, "make", e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none"
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="text"
-                      value={row.model}
-                      onChange={(e) =>
-                        handleItemChange(i, "model", e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none"
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="text"
-                      value={row.chassisNo}
-                      onChange={(e) =>
-                        handleItemChange(i, "chassisNo", e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none"
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="number"
-                      value={row.year}
-                      onChange={(e) =>
-                        handleItemChange(i, "year", e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none"
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="text"
-                      value={row.hsCode}
-                      onChange={(e) =>
-                        handleItemChange(i, "hsCode", e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none"
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="text"
-                      value={row.qty}
-                      onChange={(e) =>
-                        handleItemChange(i, "qty", e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none"
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="number"
-                      value={row.fob}
-                      onChange={(e) =>
-                        handleItemChange(i, "fob", e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none"
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="number"
-                      value={row.insurance}
-                      onChange={(e) =>
-                        handleItemChange(i, "insurance", e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none"
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      type="number"
-                      value={row.freight}
-                      onChange={(e) =>
-                        handleItemChange(i, "freight", e.target.value)
-                      }
-                      className="w-full bg-transparent outline-none"
-                    />
-                  </td>
-                  <td className="border px-2 py-1">{row.cif}</td>
-                  <td className="border px-2 py-1 text-center">
-                    <button
-                      onClick={() => removeRow(i)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {invoice.items.map((row, i) => {
+                const models = MODELS_BY_MAKE[row.make] || [];
+                return (
+                  <tr key={i} className="text-gray-900 dark:text-gray-100">
+                    <td className="border px-2 py-1">{i + 1}</td>
+                    {/* Make */}
+                    <td className="border px-2 py-1">
+                      <select
+                        value={row.make}
+                        onChange={(e) =>
+                          handleItemChange(i, "make", e.target.value)
+                        }
+                        className="w-full bg-transparent outline-none"
+                      >
+                        <option value="">— Select Make —</option>
+                        {MAKES.map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    {/* Model (depends on Make) */}
+                    <td className="border px-2 py-1">
+                      <select
+                        value={row.model}
+                        onChange={(e) =>
+                          handleItemChange(i, "model", e.target.value)
+                        }
+                        disabled={!row.make}
+                        className="w-full bg-transparent outline-none"
+                      >
+                        {!row.make ? (
+                          <option value="">— Select make first —</option>
+                        ) : (
+                          <>
+                            <option value="">— Select Model —</option>
+                            {models.map((m) => (
+                              <option key={m} value={m}>
+                                {m}
+                              </option>
+                            ))}
+                          </>
+                        )}
+                      </select>
+                    </td>
+                    <td className="border px-2 py-1">
+                      <input
+                        type="text"
+                        value={row.chassisNo}
+                        onChange={(e) =>
+                          handleItemChange(i, "chassisNo", e.target.value)
+                        }
+                        className="w-full bg-transparent outline-none"
+                      />
+                    </td>
+                    <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        value={row.year}
+                        onChange={(e) =>
+                          handleItemChange(i, "year", e.target.value)
+                        }
+                        className="w-full bg-transparent outline-none"
+                      />
+                    </td>
+                    <td className="border px-2 py-1">
+                      <input
+                        type="text"
+                        value={row.hsCode}
+                        onChange={(e) =>
+                          handleItemChange(i, "hsCode", e.target.value)
+                        }
+                        className="w-full bg-transparent outline-none"
+                      />
+                    </td>
+                    <td className="border px-2 py-1">
+                      <input
+                        type="text"
+                        value={row.qty}
+                        onChange={(e) =>
+                          handleItemChange(i, "qty", e.target.value)
+                        }
+                        className="w-full bg-transparent outline-none"
+                      />
+                    </td>
+                    <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        value={row.fob}
+                        onChange={(e) =>
+                          handleItemChange(i, "fob", e.target.value)
+                        }
+                        className="w-full bg-transparent outline-none"
+                      />
+                    </td>
+                    <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        value={row.insurance}
+                        onChange={(e) =>
+                          handleItemChange(i, "insurance", e.target.value)
+                        }
+                        className="w-full bg-transparent outline-none"
+                      />
+                    </td>
+                    <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        value={row.freight}
+                        onChange={(e) =>
+                          handleItemChange(i, "freight", e.target.value)
+                        }
+                        className="w-full bg-transparent outline-none"
+                      />
+                    </td>
+                    <td className="border px-2 py-1">{row.cif}</td>
+                    <td className="border px-2 py-1 text-center">
+                      <button
+                        onClick={() => removeRow(i)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
