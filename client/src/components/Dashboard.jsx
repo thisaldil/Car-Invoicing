@@ -7,7 +7,8 @@ import {
   QuoteIcon,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
+import api from "../../utils/axios";
 //import avatar from "../images/default-avatar.png";
 
 function Dashboard({ setGeneratedInvoice }) {
@@ -36,7 +37,7 @@ function Dashboard({ setGeneratedInvoice }) {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const res = await axios.get(
+        const res = await api.get(
           `https://car-invoicing.vercel.app/invoice/getInvoiceDetailsByUserId/${userId}`
         );
 
@@ -98,7 +99,13 @@ function Dashboard({ setGeneratedInvoice }) {
         setLastMonthRevenue(previousRevenue);
         setLoading(false);
       } catch (err) {
-        console.error("Failed to load invoices:", err);
+        if (err.response && err.response.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+        } else {
+          console.error("Failed to load invoices:", err);
+        }
       } finally {
         setLoading(false);
       }
