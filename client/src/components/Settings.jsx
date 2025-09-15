@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Sun, Moon, Monitor } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "system");
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const html = document.documentElement;
@@ -26,6 +27,12 @@ const Settings = () => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     setUser(storedUser);
   }, []);
+
+  const handleRegisterClick = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/register");
+  };
 
   const themeOptions = [
     { label: "System", value: "system", icon: <Monitor className="w-6 h-6" /> },
@@ -80,10 +87,14 @@ const Settings = () => {
           </div>
         </div>
         <div className="mt-6 text-sm text-gray-600">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-blue-500 hover:underline">
+          Want to resgister new user?{" "}
+          <button
+            onClick={handleRegisterClick}
+            className="text-blue-500 hover:underline bg-transparent border-none p-0 m-0 cursor-pointer"
+            style={{ background: "none", border: "none" }}
+          >
             Register here
-          </Link>
+          </button>
         </div>
       </div>
     </div>
