@@ -185,12 +185,12 @@ exports.sendInvoiceEmail = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email.trim(),
-      subject: "Your Invoice from AirInvoice",
+      subject: "Your Invoice from CarInvoice",
       html: `
           <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; color: #333;">
-            <h2 style="color: #004cc7;">✈️ AirInvoice Pro</h2>
+            <h2 style="color: #004cc7;">🚗 Invoice Pro</h2>
             <p>Dear Customer,</p>
-            <p>Thank you for choosing AirInvoice Pro.</p>
+            <p>Thank you for choosing CarInvoice Pro</p>
             <p>Please find your attached invoice below.</p>
 
             <div style="margin: 20px 0; padding: 16px; background-color: #f4f8ff; border-left: 4px solid #004cc7;">
