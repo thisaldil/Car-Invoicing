@@ -166,7 +166,7 @@ function Dashboard({ setGeneratedInvoice }) {
       : "N/A";
 
   const handleSend = (invoice) => {
-    if (!invoice) return;
+    if (!invoice || typeof setGeneratedInvoice !== "function") return;
 
     setGeneratedInvoice({
       template: {
@@ -304,7 +304,7 @@ function Dashboard({ setGeneratedInvoice }) {
             <tbody>
               {recentInvoices.map((invoice) => (
                 <tr
-                  key={invoice.id}
+                  key={invoice._id}
                   className="border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <td className="py-4 px-4 text-sm text-gray-800 dark:text-white">
