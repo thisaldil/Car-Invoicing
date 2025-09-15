@@ -79,9 +79,9 @@ exports.saveInvoiceDetails = async (req, res) => {
       template: {
         _id: template._id,
         company: {
-          name: template.company.name,
-          logo: template.company.logo,
-          address: template.company.address,
+          name: template.company?.name || template.name || "Company Name",
+          logo: template.company?.logo || "",
+          address: template.company?.address || "",
         },
       },
       invoiceDetails: validatedInvoiceDetails,
