@@ -49,6 +49,7 @@ function AppWrapper() {
       <Routes>
         {/* Public */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Protected */}
         <Route
@@ -160,8 +161,6 @@ function AppWrapper() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-
-      <Route path="/register" element={<Register />} />
     </div>
   );
 }
