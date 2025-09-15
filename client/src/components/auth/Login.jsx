@@ -74,13 +74,6 @@ const Login = () => {
           <div className="flex justify-center mb-4">
             <LoginGoogle onSuccess={handleGoogleSuccess} />
           </div>
-
-          <div className="mt-6 text-sm text-gray-600">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-blue-500 hover:underline">
-              Register here
-            </Link>
-          </div>
         </motion.div>
       </div>
     </div>
