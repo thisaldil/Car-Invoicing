@@ -365,39 +365,55 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
               </h2>
             </div>
             <div className="p-8 overflow-auto" ref={previewRef}>
-              <div className="border border-gray-200 dark:border-gray-600 rounded-md overflow-visible bg-white dark:bg-gray-800">
-                {/* LAYER 1: TOP BAR LETTERHEAD */}
+              <div
+                className="relative mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700"
+                style={{
+                  maxWidth: 800,
+                  minHeight: 900,
+                  boxShadow:
+                    "0 4px 24px 0 rgba(0,0,0,0.10), 0 1.5px 4px 0 rgba(0,0,0,0.07)",
+                  borderRadius: 18,
+                  overflow: "hidden",
+                }}
+              >
+                {/* HEADER */}
                 <div
                   ref={sectionRefs.header}
                   onClick={() => setSelectedSection("header")}
-                  className={`border-b border-gray-200 dark:border-gray-600 cursor-pointer ${
+                  className={`flex items-center justify-center border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 h-32 md:h-36 px-6 transition-all duration-150 ${
                     selectedSection === "header"
-                      ? "ring-2 ring-orange-500 dark:ring-orange-400"
+                      ? "ring-2 ring-orange-500 dark:ring-orange-400 z-10"
                       : ""
                   }`}
+                  style={{
+                    boxShadow: "0 2px 8px 0 rgba(0,0,0,0.04)",
+                    minHeight: 110,
+                  }}
                 >
                   {letterheadUrl ? (
                     <img
                       src={letterheadUrl}
                       alt="Letterhead"
-                      className="w-full h-28 object-cover"
+                      className="max-h-28 md:max-h-32 w-auto object-contain"
+                      style={{ maxWidth: "100%" }}
                     />
                   ) : (
-                    <div className="h-28 flex items-center justify-center text-gray-400">
+                    <div className="h-20 flex items-center justify-center text-gray-400 w-full">
                       No letterhead selected
                     </div>
                   )}
                 </div>
 
-                {/* LAYER 2: MIDDLE CONTENT (PROFORMA) */}
+                {/* MAIN CONTENT */}
                 <div
                   ref={sectionRefs.info}
                   onClick={() => setSelectedSection("info")}
-                  className={`p-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer ${
+                  className={`p-8 md:p-10 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600 transition-all duration-150 ${
                     selectedSection === "info"
-                      ? "ring-2 ring-orange-500 dark:ring-orange-400"
+                      ? "ring-2 ring-orange-500 dark:ring-orange-400 z-10"
                       : ""
                   }`}
+                  style={{ minHeight: 400 }}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="text-sm">
@@ -509,25 +525,31 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   </div>
                 </div>
 
-                {/* LAYER 3: TERMS & CONDITIONS */}
+                {/* FOOTER */}
                 <div
                   ref={sectionRefs.footer}
                   onClick={() => setSelectedSection("footer")}
-                  className={`p-6 cursor-pointer ${
+                  className={`p-8 md:p-10 transition-all duration-150 ${
                     selectedSection === "footer"
-                      ? "ring-2 ring-orange-500 dark:ring-orange-400"
+                      ? "ring-2 ring-orange-500 dark:ring-orange-400 z-10"
                       : ""
                   }`}
                   style={{
-                    backgroundColor:
+                    background:
                       theme === "dark"
-                        ? accentColor + "20"
-                        : accentColor + "10",
+                        ? accentColor + "22"
+                        : accentColor + "0A",
+                    borderTopLeftRadius: 18,
+                    borderTopRightRadius: 18,
+                    borderBottomLeftRadius: bottomLayerUrl ? 0 : 18,
+                    borderBottomRightRadius: bottomLayerUrl ? 0 : 18,
+                    borderTop: "1px solid #e5e7eb",
+                    minHeight: 120,
                   }}
                 >
                   <h3
-                    className="font-medium mb-2"
-                    style={{ color: accentColor }}
+                    className="font-semibold mb-2"
+                    style={{ color: accentColor, fontSize: 18 }}
                   >
                     Terms & Conditions
                   </h3>
@@ -536,16 +558,22 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   </pre>
                 </div>
 
-                {/* LAYER 4: BOTTOM IMAGE (photo under Terms) */}
+                {/* BOTTOM IMAGE */}
                 {bottomLayerUrl && (
-                  <div className="p-6">
-                    <div className="flex justify-end">
-                      <img
-                        src={bottomLayerUrl}
-                        alt="Bottom layer"
-                        className="h-16 md:h-20 object-contain"
-                      />
-                    </div>
+                  <div
+                    className="flex justify-end items-end px-8 pb-6 pt-2"
+                    style={{
+                      background: theme === "dark" ? "#222" : "#f9fafb",
+                      borderBottomLeftRadius: 18,
+                      borderBottomRightRadius: 18,
+                    }}
+                  >
+                    <img
+                      src={bottomLayerUrl}
+                      alt="Bottom layer"
+                      className="h-16 md:h-20 object-contain"
+                      style={{ maxWidth: 220 }}
+                    />
                   </div>
                 )}
               </div>
