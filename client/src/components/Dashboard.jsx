@@ -307,7 +307,7 @@ function Dashboard({ setGeneratedInvoice }) {
                   className="border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <td className="py-4 px-4 text-sm text-gray-800 dark:text-white">
-                    {invoice.invoiceNo || "N/A"}
+                    {invoice.invoiceDetails?.invoiceNo || "N/A"}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-800 dark:text-white">
                     {invoice.invoiceType || "Invoice"}
