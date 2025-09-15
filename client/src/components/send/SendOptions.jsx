@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../utils/axios";
 import {
   DownloadIcon,
   MailIcon,
@@ -23,8 +23,8 @@ function SendOptions({ invoice, onBack }) {
   useEffect(() => {
     const fetchInvoice = async () => {
       try {
-        const res = await axios.get(
-          `https://car-invoicing.vercel.app/invoice/getInvoiceDetailsByInvoiceId/${invoice.invoiceId}`
+        const res = await api.get(
+          `/invoice/getInvoiceDetailsByInvoiceId/${invoice.invoiceId}`
         );
         setInvoiceData(res.data);
       } catch (err) {
@@ -41,13 +41,10 @@ function SendOptions({ invoice, onBack }) {
     setIsSending(true);
     try {
       if (sendMethod === "email") {
-        await axios.post(
-          "https://car-invoicing.vercel.app/invoice/sendInvoiceEmail",
-          {
-            email,
-            pdfUrl: invoiceData?.pdfUrl,
-          }
-        );
+        await api.post("/invoice/sendInvoiceEmail", {
+          email,
+          pdfUrl: invoiceData?.pdfUrl,
+        });
       }
       if (sendMethod === "whatsapp") {
         const message = `Dear Customer,\n\nThis is ${invoice.template.company.name}. Please find your invoice below:\n\n${invoiceData?.pdfUrl}\n\nThank you for your business.`;
@@ -96,8 +93,12 @@ function SendOptions({ invoice, onBack }) {
   useEffect(() => {
     const fetchCountryCodes = async () => {
       try {
-        const res = await axios.get("https://restcountries.com/v3.1/all");
-        const data = res.data;
+        // Try the primary API first
+        const res = await fetch("https://restcountries.com/v3.1/all");
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
 
         const codes = data
           .map((country) => ({
@@ -118,6 +119,26 @@ function SendOptions({ invoice, onBack }) {
         }
       } catch (error) {
         console.error("Error fetching country codes:", error);
+        // Fallback to a basic list of common country codes
+        const fallbackCodes = [
+          { name: "Sri Lanka", code: "+94" },
+          { name: "United States", code: "+1" },
+          { name: "United Kingdom", code: "+44" },
+          { name: "India", code: "+91" },
+          { name: "Australia", code: "+61" },
+          { name: "Canada", code: "+1" },
+          { name: "Germany", code: "+49" },
+          { name: "France", code: "+33" },
+          { name: "Japan", code: "+81" },
+          { name: "China", code: "+86" },
+          { name: "Singapore", code: "+65" },
+          { name: "Malaysia", code: "+60" },
+          { name: "Thailand", code: "+66" },
+          { name: "United Arab Emirates", code: "+971" },
+          { name: "Saudi Arabia", code: "+966" },
+        ];
+        setCountryCodes(fallbackCodes);
+        setSelectedCode("+94");
       }
     };
 
