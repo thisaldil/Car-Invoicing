@@ -230,7 +230,7 @@ function Dashboard({ setGeneratedInvoice }) {
           </div>
         </Link>
 
-        <Link
+        {/* <Link
           to={`/dashboard/quotation`}
           className="bg-green-500 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
         >
@@ -245,7 +245,7 @@ function Dashboard({ setGeneratedInvoice }) {
               </p>
             </div>
           </div>
-        </Link>
+        </Link> */}
 
         <Link
           to={`/dashboard/templates`}
@@ -284,7 +284,7 @@ function Dashboard({ setGeneratedInvoice }) {
                   Type
                 </th>
                 <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-white">
-                  Customer
+                  Consingee
                 </th>
                 <th className="py-3 px-4 text-left text-sm font-medium text-gray-500 dark:text-white">
                   Date
@@ -313,7 +313,7 @@ function Dashboard({ setGeneratedInvoice }) {
                     {invoice.date}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-800 font-medium dark:text-white">
-                    {invoice.priceDetails.totalAmount}
+                    {invoice.items.cif}
                   </td>
                   <td className="py-4 px-4 text-right">
                     <button
