@@ -267,7 +267,7 @@ function Dashboard({ setGeneratedInvoice }) {
       <div className="bg-white rounded-lg shadow-md p-6 mb-8 dark:bg-gray-800 dark:text-white">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-            Recent Invoices & Quotations
+            Recent Invoices
           </h2>
           <Link
             to={"/dashboard/invoices"}
@@ -313,7 +313,7 @@ function Dashboard({ setGeneratedInvoice }) {
                     {invoice.date}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-800 font-medium dark:text-white">
-                    {invoice.items.cif}
+                    {invoice.invoiceDetails?.items.cif}
                   </td>
                   <td className="py-4 px-4 text-right">
                     <button
@@ -339,7 +339,7 @@ function Dashboard({ setGeneratedInvoice }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           {
-            label: "Invoices & Quotations This Month",
+            label: "Invoices  This Month",
             value: `${monthlyInvoices.length}`,
             change: invoiceChange === "N/A" ? "N/A" : `${invoiceChange}%`,
             isPositive:
@@ -353,7 +353,7 @@ function Dashboard({ setGeneratedInvoice }) {
               revenueChange !== "N/A" && parseFloat(revenueChange) >= 0,
           },
           {
-            label: "All Invoices & Quotations",
+            label: "All Invoices ",
             value: `${allInvoices.length}`,
             change: "",
             isPositive: true,
