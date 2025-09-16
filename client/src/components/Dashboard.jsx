@@ -319,7 +319,7 @@ function Dashboard({ setGeneratedInvoice }) {
 
                   <td className="py-4 px-4 text-right">
                     <button
-                      onClick={() => handleSend(invoice)}
+                      onClick={() => window.open(invoice.pdfUrl, "_blank")}
                       className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
                     >
                       <FileTextIcon className="w-4 h-4" />
