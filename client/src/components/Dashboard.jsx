@@ -166,20 +166,26 @@ function Dashboard({ setGeneratedInvoice }) {
       : "N/A";
 
   const handleSend = (invoice) => {
-    if (!invoice || typeof setGeneratedInvoice !== "function") return;
+    if (!invoice) return;
 
     setGeneratedInvoice({
+      template: {
+        _id: invoice.template?._id,
+        company: {
+          name: invoice.template?.company?.name,
+          logo: invoice.template?.company?.logo,
+          address: invoice.template?.company?.address,
+        },
+      },
       invoiceId: invoice._id,
-      userId: invoice.userId,
-      date: invoice.date,
-      pdfUrl: invoice.pdfUrl,
-      invoiceType: invoice.invoiceType,
-      template: invoice.template,
-      invoiceDetails: invoice.invoiceDetails,
-      priceDetails: invoice.priceDetails,
+      invoiceDetails: {
+        ...invoice.invoiceDetails,
+        ...invoice.priceDetails,
+        pdfUrl: invoice.pdfUrl,
+      },
     });
 
-    navigate("/dashboard/send");
+    navigate(`/dashboard/send`);
   };
 
   return (
