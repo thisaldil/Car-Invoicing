@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, createContext } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -19,6 +19,8 @@ import AllInvoices from "./components/AllInvoices";
 import Settings from "./components/Settings";
 import Crm from "./components/Crm";
 import CarInvoiceForm from "./components/invoice/CarInvoiceForm";
+
+export const InvoiceContext = createContext();
 
 function AppWrapper() {
   const [uploadedInvoice, setUploadedInvoice] = useState(null);
@@ -44,124 +46,127 @@ function AppWrapper() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white transition-colors duration-300">
-      <Toaster position="top-center" />
-      <Routes>
-        {/* Public */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+    <InvoiceContext.Provider
+      value={{
+        generatedInvoice,
+        setGeneratedInvoice,
+        uploadedInvoice,
+        setUploadedInvoice,
+        selectedTemplate,
+        setSelectedTemplate,
+      }}
+    >
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white transition-colors duration-300">
+        <Toaster position="top-center" />
+        <Routes>
+          {/* Public */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Protected */}
-        <Route
-          path="/dashboard"
-          element={
-            <RequireAuth>
-              <Layout />
-            </RequireAuth>
-          }
-        >
-          <Route index element={<Dashboard />} />
-
+          {/* Protected */}
           <Route
-            path="upload"
+            path="/dashboard"
             element={
-              <CarInvoiceForm
-                onSave={(invoice) => {
-                  setUploadedInvoice(invoice);
-                  navigate("/dashboard/templates", { replace: true });
-                }}
-                onBack={() => navigate("/dashboard", { replace: true })}
-                onContinue={(invoice) => {
-                  setUploadedInvoice(invoice);
-                  navigate("/dashboard/templates", { replace: true });
-                }}
-              />
+              <RequireAuth>
+                <Layout />
+              </RequireAuth>
             }
-          />
+          >
+            <Route index element={<Dashboard />} />
 
-          <Route
-            path="templates"
-            element={
-              <TemplateManager
-                invoiceData={uploadedInvoice}
-                onSelectTemplate={({ template }) => {
-                  setSelectedTemplate(template);
-                  navigate(`/dashboard/template-editor/${template._id}`, {
-                    replace: true,
-                  });
-                }}
-                onCreateTemplate={() =>
-                  navigate("/dashboard/template-editor", { replace: true })
-                }
-              />
-            }
-          />
+            <Route
+              path="upload"
+              element={
+                <CarInvoiceForm
+                  onSave={(invoice) => {
+                    setUploadedInvoice(invoice);
+                    navigate("/dashboard/templates");
+                  }}
+                  onBack={() => navigate("/dashboard")}
+                  onContinue={(invoice) => {
+                    setUploadedInvoice(invoice);
+                    navigate("/dashboard/templates");
+                  }}
+                />
+              }
+            />
 
-          <Route
-            path="template-editor"
-            element={
-              <TemplateEditor
-                invoiceData={uploadedInvoice}
-                onSave={({ template, invoiceId }) => {
-                  setSelectedTemplate(template);
-                  setGeneratedInvoice({ template, invoiceId });
-                  navigate("/dashboard/send", { replace: true });
-                }}
-                onCancel={() =>
-                  navigate("/dashboard/templates", { replace: true })
-                }
-              />
-            }
-          />
+            <Route
+              path="templates"
+              element={
+                <TemplateManager
+                  invoiceData={uploadedInvoice}
+                  onSelectTemplate={({ template }) => {
+                    setSelectedTemplate(template);
+                    navigate(`/dashboard/template-editor/${template._id}`);
+                  }}
+                  onCreateTemplate={() =>
+                    navigate("/dashboard/template-editor")
+                  }
+                />
+              }
+            />
 
-          <Route
-            path="template-editor/:id"
-            element={
-              <TemplateEditor
-                invoiceData={uploadedInvoice}
-                onSave={({ template, invoiceId }) => {
-                  setSelectedTemplate(template);
-                  setGeneratedInvoice({ template, invoiceId });
-                  navigate("/dashboard/send", { replace: true });
-                }}
-                onCancel={() =>
-                  navigate("/dashboard/templates", { replace: true })
-                }
-              />
-            }
-          />
+            <Route
+              path="template-editor"
+              element={
+                <TemplateEditor
+                  invoiceData={uploadedInvoice}
+                  onSave={({ template, invoiceId }) => {
+                    setSelectedTemplate(template);
+                    setGeneratedInvoice({ template, invoiceId });
+                    navigate("/dashboard/send");
+                  }}
+                  onCancel={() => navigate("/dashboard/templates")}
+                />
+              }
+            />
 
-          <Route
-            path="send"
-            element={
-              <SendOptions
-                invoice={generatedInvoice}
-                onBack={() =>
-                  navigate("/dashboard/invoices", { replace: true })
-                }
-              />
-            }
-          />
+            <Route
+              path="template-editor/:id"
+              element={
+                <TemplateEditor
+                  invoiceData={uploadedInvoice}
+                  onSave={({ template, invoiceId }) => {
+                    setSelectedTemplate(template);
+                    setGeneratedInvoice({ template, invoiceId });
+                    navigate("/dashboard/send");
+                  }}
+                  onCancel={() => navigate("/dashboard/templates")}
+                />
+              }
+            />
 
-          <Route
-            path="invoices"
-            element={
-              <AllInvoices
-                setGeneratedInvoice={(inv) => setGeneratedInvoice(inv)}
-              />
-            }
-          />
+            <Route
+              path="send"
+              element={
+                <SendOptions
+                  invoice={generatedInvoice}
+                  onBack={() => navigate("/dashboard/invoices")}
+                />
+              }
+            />
 
-          <Route path="crm" element={<Crm />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
+            <Route
+              path="invoices"
+              element={
+                <AllInvoices
+                  setGeneratedInvoice={(inv) => setGeneratedInvoice(inv)}
+                />
+              }
+            />
 
-        {/* Root → protected home */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </div>
+            <Route path="crm" element={<Crm />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+
+          {/* Root → protected home */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </div>
+    </InvoiceContext.Provider>
   );
 }
 
