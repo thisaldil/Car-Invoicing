@@ -73,26 +73,20 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
   }, [search, invoices]);
 
   const handleClick = (invoice) => {
-    if (!invoice) return;
+    if (!invoice || typeof setGeneratedInvoice !== "function") return;
 
     setGeneratedInvoice({
-      template: {
-        _id: invoice.template?._id,
-        company: {
-          name: invoice.template?.company?.name,
-          logo: invoice.template?.company?.logo,
-          address: invoice.template?.company?.address,
-        },
-      },
       invoiceId: invoice._id,
-      invoiceDetails: {
-        ...invoice.invoiceDetails,
-        ...invoice.priceDetails,
-        pdfUrl: invoice.pdfUrl,
-      },
+      userId: invoice.userId,
+      date: invoice.date,
+      pdfUrl: invoice.pdfUrl,
+      invoiceType: invoice.invoiceType,
+      template: invoice.template,
+      invoiceDetails: invoice.invoiceDetails,
+      priceDetails: invoice.priceDetails,
     });
 
-    navigate(`/dashboard/send`);
+    navigate("/dashboard/send");
   };
 
   const handleDeleteInvoice = async (invoiceId) => {
