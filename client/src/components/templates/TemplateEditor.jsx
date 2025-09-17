@@ -422,45 +422,48 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   }`}
                   style={{ minHeight: 400 }}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="text-sm">
-                      <div className="text-gray-500 dark:text-gray-400">
-                        Consignee
-                      </div>
-                      <div className="font-semibold text-gray-800 dark:text-gray-100">
-                        {invoiceData?.consigneeName || "--"}
-                      </div>
-                      <div className="whitespace-pre-line text-gray-700 dark:text-gray-300">
-                        {[
-                          invoiceData?.addressLine1,
-                          invoiceData?.addressLine2,
-                          invoiceData?.addressLine3,
-                        ]
-                          .filter(Boolean)
-                          .join("\n") || "--"}
+                  {/* Invoice Type Title */}
+                  <div className="flex justify-center mb-6">
+                    <span
+                      className="font-bold text-2xl underline"
+                      style={{ color: accentColor }}
+                    >
+                      {INVOICE_TYPE_LABELS[invoiceData?.invoiceType] ||
+                        invoiceData?.invoiceType ||
+                        "INVOICE"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-start mb-4">
+                    {/* Consignee Block */}
+                    <div className="flex">
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400 mr-2">
+                        Consignee:
+                      </span>
+                      <div>
+                        <div className="font-semibold text-gray-800 dark:text-gray-100">
+                          {invoiceData?.consigneeName || "--"}
+                        </div>
+                        <div className="whitespace-pre-line text-gray-700 dark:text-gray-300">
+                          {[
+                            invoiceData?.addressLine1,
+                            invoiceData?.addressLine2,
+                            invoiceData?.addressLine3,
+                          ]
+                            .filter(Boolean)
+                            .join("\n") || "--"}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right text-sm" style={{ flex: 1 }}>
-                      {/* Centered Invoice Type */}
-                      <div
-                        className="font-bold text-xl text-center"
-                        style={{ color: accentColor }}
-                      >
-                        {INVOICE_TYPE_LABELS[invoiceData?.invoiceType] ||
-                          invoiceData?.invoiceType ||
-                          "INVOICE"}
+                    {/* Invoice No. & Date Block */}
+                    <div className="flex flex-col items-end text-sm">
+                      <div className="text-gray-700 dark:text-gray-300 mb-1">
+                        <span className="font-medium">Invoice No.:</span>{" "}
+                        {invoiceData?.invoiceNo || "--"}
                       </div>
-                      <div className="text-gray-700 dark:text-gray-300 text-right">
-                        Invoice No.:{" "}
-                        <span className="font-medium">
-                          {invoiceData?.invoiceNo || "--"}
-                        </span>
-                      </div>
-                      <div className="text-gray-700 dark:text-gray-300 text-right">
-                        Date:{" "}
-                        <span className="font-medium">
-                          {invoiceData?.date || "--"}
-                        </span>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        <span className="font-medium">Date:</span>{" "}
+                        {invoiceData?.date || "--"}
                       </div>
                     </div>
                   </div>
