@@ -172,7 +172,7 @@ function SendOptions({ invoice, onBack }) {
         <div className="md:w-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
           <div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
             <h2 className="font-medium text-gray-800 dark:text-white">
-              Invoice PDF Preview
+              Invoice Preview
             </h2>
             {invoiceData?.pdfUrl && (
               <button
@@ -184,25 +184,18 @@ function SendOptions({ invoice, onBack }) {
               </button>
             )}
           </div>
-          <div className="p-0">
-            {" "}
-            {/* Remove padding here */}
-            {invoiceData?.pdfUrl ? (
-              <iframe
-                src={invoiceData.pdfUrl}
-                title="Invoice PDF"
-                width="100%"
-                height="900px"
-                style={{
-                  border: "none",
-                  display: "block",
-                  margin: 0,
-                  padding: 0,
-                }}
+          <div className="p-4">
+            {invoiceData ? (
+              <InvoicePreview
+                invoiceData={invoiceData.invoiceDetails}
+                accentColor={invoice.template?.design?.accentColor || "#3B82F6"}
+                letterheadUrl={invoice.template?.design?.letterheadUrl}
+                termsText={invoice.template?.design?.termsText}
+                bottomLayerUrl={invoice.template?.design?.bottomLayerUrl}
               />
             ) : (
-              <p className="text-gray-500 dark:text-gray-300 p-4">
-                Loading PDF preview...
+              <p className="text-gray-500 dark:text-gray-300">
+                Loading preview...
               </p>
             )}
           </div>
