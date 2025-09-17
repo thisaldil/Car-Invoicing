@@ -356,9 +356,10 @@ export default function ProformaInvoiceForm({ onSave }) {
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               required
             >
-              <option value="type1">Type 1</option>
-              <option value="type2">Type 2</option>
-              <option value="type3">Type 3</option>
+              <option value="type1">PERFORMA INVOICE</option>
+              <option value="type2">COMMERCIAL INVOICE</option>
+              <option value="type3">INVOICE</option>
+              <option value="type3">CASH RECEIPT</option>
             </select>
           </div>
           <Field

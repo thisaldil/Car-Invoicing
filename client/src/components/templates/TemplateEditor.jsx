@@ -17,6 +17,13 @@ import PdfInvoice from "../PdfInvoice";
 import toast from "react-hot-toast";
 import { ImageIcon } from "lucide-react";
 
+const INVOICE_TYPE_LABELS = {
+  type1: "PERFORMA INVOICE",
+  type2: "COMMERCIAL INVOICE",
+  type3: "INVOICE",
+  type4: "CASH RECEIPT",
+};
+
 function TemplateEditor({ invoiceData, onSave, onCancel }) {
   if (typeof window !== "undefined" && !window.Buffer) {
     window.Buffer = Buffer;
@@ -433,20 +440,23 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                           .join("\n") || "--"}
                       </div>
                     </div>
-                    <div className="text-right text-sm">
+                    <div className="text-right text-sm" style={{ flex: 1 }}>
+                      {/* Centered Invoice Type */}
                       <div
-                        className="font-bold text-xl"
+                        className="font-bold text-xl text-center"
                         style={{ color: accentColor }}
                       >
-                        PROFORMA INVOICE
+                        {INVOICE_TYPE_LABELS[invoiceData?.invoiceType] ||
+                          invoiceData?.invoiceType ||
+                          "INVOICE"}
                       </div>
-                      <div className="text-gray-700 dark:text-gray-300">
+                      <div className="text-gray-700 dark:text-gray-300 text-right">
                         Invoice No.:{" "}
                         <span className="font-medium">
                           {invoiceData?.invoiceNo || "--"}
                         </span>
                       </div>
-                      <div className="text-gray-700 dark:text-gray-300">
+                      <div className="text-gray-700 dark:text-gray-300 text-right">
                         Date:{" "}
                         <span className="font-medium">
                           {invoiceData?.date || "--"}
