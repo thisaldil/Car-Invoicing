@@ -8,6 +8,7 @@ import {
   CheckIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import InvoicePreview from "../invoice/InvoicePreview";
 
 // Utility function for formatting money
 function formatMoney(n) {
@@ -184,24 +185,14 @@ function SendOptions({ invoice, onBack }) {
             )}
           </div>
           <div className="p-4">
-            {invoiceData?.pdfUrl ? (
-              <div className="space-y-4">
-                {/* PDF Preview */}
-                <div className="flex justify-center">
-                  <iframe
-                    src={invoiceData.pdfUrl}
-                    title="PDF Preview"
-                    width="100%"
-                    height="700px" // Increased height for better visibility
-                    className="border rounded"
-                  />
-                </div>
-                {/* 
-                // Remove or comment out everything below this line in the PDF preview panel:
-                // - Template Preview with Header and Footer
-                // - Invoice Details Summary
-                */}
-              </div>
+            {invoiceData ? (
+              <InvoicePreview
+                invoiceData={invoiceData.invoiceDetails}
+                accentColor={invoice.template?.design?.accentColor || "#3B82F6"}
+                letterheadUrl={invoice.template?.design?.letterheadUrl}
+                termsText={invoice.template?.design?.termsText}
+                bottomLayerUrl={invoice.template?.design?.bottomLayerUrl}
+              />
             ) : (
               <p className="text-gray-500 dark:text-gray-300">
                 Loading preview...
