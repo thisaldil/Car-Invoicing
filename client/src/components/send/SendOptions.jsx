@@ -8,7 +8,7 @@ import {
   CheckIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import InvoicePreviewPage from "../InvoicePreview";
+import InvoicePreviewPage from "../invoice/InvoicePreview";
 
 // Utility function for formatting money
 function formatMoney(n) {
@@ -186,7 +186,10 @@ function SendOptions({ invoice, onBack }) {
           </div>
           <div className="p-4">
             {invoiceData ? (
-              <InvoicePreviewPage invoiceData={invoiceData.invoiceDetails} invoice={invoice} />
+              <InvoicePreviewPage
+                invoiceData={invoiceData.invoiceDetails}
+                invoice={invoice}
+              />
             ) : (
               <p className="text-gray-500 dark:text-gray-300">
                 Loading preview...
