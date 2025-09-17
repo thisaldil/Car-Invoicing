@@ -8,7 +8,6 @@ import {
   CheckIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import InvoicePreview from "../invoice/InvoicePreview";
 
 // Utility function for formatting money
 function formatMoney(n) {
@@ -172,7 +171,7 @@ function SendOptions({ invoice, onBack }) {
         <div className="md:w-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
           <div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
             <h2 className="font-medium text-gray-800 dark:text-white">
-              Invoice PDF Preview
+              Invoice Preview
             </h2>
             {invoiceData?.pdfUrl && (
               <button
@@ -184,23 +183,28 @@ function SendOptions({ invoice, onBack }) {
               </button>
             )}
           </div>
-          <div className="p-0" style={{ minHeight: 900 }}>
+          <div className="p-4">
             {invoiceData?.pdfUrl ? (
-              <iframe
-                src={invoiceData.pdfUrl}
-                title="Invoice PDF"
-                width="100%"
-                height="900px"
-                style={{
-                  border: "none",
-                  display: "block",
-                  margin: 0,
-                  padding: 0,
-                }}
-              />
+              <div className="space-y-4">
+                {/* PDF Preview */}
+                <div className="flex justify-center">
+                  <iframe
+                    src={invoiceData.pdfUrl}
+                    title="PDF Preview"
+                    width="100%"
+                    height="700px" // Increased height for better visibility
+                    className="border rounded"
+                  />
+                </div>
+                {/* 
+                // Remove or comment out everything below this line in the PDF preview panel:
+                // - Template Preview with Header and Footer
+                // - Invoice Details Summary
+                */}
+              </div>
             ) : (
-              <p className="text-gray-500 dark:text-gray-300 p-4">
-                Loading PDF preview...
+              <p className="text-gray-500 dark:text-gray-300">
+                Loading preview...
               </p>
             )}
           </div>
