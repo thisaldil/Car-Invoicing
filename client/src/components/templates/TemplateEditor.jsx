@@ -423,12 +423,13 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
                   style={{ minHeight: 400 }}
                 >
                   {/* Invoice Type Title */}
-                  <div className="flex justify-center mt-2 mb-6">
+                  <div className="flex justify-center mb-6">
                     <span
                       className="font-bold text-2xl underline"
                       style={{ color: accentColor }}
                     >
                       {INVOICE_TYPE_LABELS[invoiceData?.invoiceType] ||
+                        invoiceData?.invoiceType ||
                         "INVOICE"}
                     </span>
                   </div>
