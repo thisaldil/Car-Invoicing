@@ -8,6 +8,13 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 
+const INVOICE_TYPE_LABELS = {
+  type1: "PERFORMA INVOICE",
+  type2: "COMMERCIAL INVOICE",
+  type3: "INVOICE",
+  type4: "CASH RECEIPT",
+};
+
 const PdfInvoice = ({ invoiceData = {}, templateData = {} }) => {
   const design = templateData.design || {};
   const accentColor = design.accentColor || "#3B82F6";
@@ -25,6 +32,12 @@ const PdfInvoice = ({ invoiceData = {}, templateData = {} }) => {
       year: "numeric",
     });
 
+  // Get the correct invoice type label
+  const invoiceTypeLabel =
+    INVOICE_TYPE_LABELS[invoiceData?.invoiceType] ||
+    invoiceData?.invoiceType ||
+    "INVOICE";
+
   const items = Array.isArray(invoiceData.items) ? invoiceData.items : [];
   const totalCIF = items.reduce((sum, r) => sum + toNum(r?.cif), 0);
 
@@ -35,105 +48,112 @@ const PdfInvoice = ({ invoiceData = {}, templateData = {} }) => {
         {letterheadUrl ? (
           <Image src={letterheadUrl} style={styles.letterhead} />
         ) : (
-          <View
-            style={[
-              styles.letterheadFallback,
-              { backgroundColor: accentColor },
-            ]}
-          />
+          <View style={styles.letterheadFallback} />
         )}
 
-        {/* Title/Meta row */}
-        <View style={styles.topRow}>
-          {/* Left: Consignee */}
-          <View style={styles.blockLeft}>
-            <Text style={styles.blockLabel}>Consignee</Text>
-            <Text style={styles.blockText}>
-              {safe(invoiceData.consigneeName)}
-              {line(invoiceData.addressLine1)}
-              {line(invoiceData.addressLine2)}
-              {line(invoiceData.addressLine3)}
+        {/* Main content section with light background */}
+        <View style={styles.mainContent}>
+          {/* Invoice Type Title - Centered */}
+          <View style={styles.titleRow}>
+            <Text style={[styles.invoiceTitle, { color: accentColor }]}>
+              {invoiceTypeLabel}
             </Text>
           </View>
 
-          {/* Right: PROFORMA and meta */}
-          <View style={styles.blockRight}>
-            <Text style={[styles.proformaTitle, { color: accentColor }]}>
-              PROFORMA INVOICE
-            </Text>
-            <Text style={styles.metaText}>
-              Invoice No.:{" "}
-              <Text style={styles.metaStrong}>{safe(bookingRef)}</Text>
-            </Text>
-            <Text style={styles.metaText}>
-              Date: <Text style={styles.metaStrong}>{safe(displayDate)}</Text>
-            </Text>
-          </View>
-        </View>
-
-        {/* Description */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Description: </Text>
-          <Text style={styles.sectionText}>
-            {safe(invoiceData.description) || "USED MOTOR VEHICLES"}
-          </Text>
-        </View>
-
-        {/* Vehicles table */}
-        <View style={styles.table}>
-          <View style={[styles.tr, styles.trHead]}>
-            {[
-              "#",
-              "Make",
-              "Model",
-              "Chassis No",
-              "Year",
-              "HS Code",
-              "Qty",
-              "FOB",
-              "Insurance",
-              "Freight",
-              "CIF",
-            ].map((h, i) => (
-              <Text
-                key={h}
-                style={[styles.th, i === 10 && styles.noRightBorder]}
-              >
-                {h}
+          {/* Consignee and Invoice Meta Row */}
+          <View style={styles.topRow}>
+            {/* Left: Consignee */}
+            <View style={styles.blockLeft}>
+              <Text style={styles.blockLabel}>Consignee:</Text>
+              <Text style={styles.blockText}>
+                {safe(invoiceData.consigneeName)}
+                {line(invoiceData.addressLine1)}
+                {line(invoiceData.addressLine2)}
+                {line(invoiceData.addressLine3)}
               </Text>
+            </View>
+
+            {/* Right: Invoice meta */}
+            <View style={styles.blockRight}>
+              <Text style={styles.metaText}>
+                Invoice No.:{" "}
+                <Text style={styles.metaStrong}>{safe(bookingRef)}</Text>
+              </Text>
+              <Text style={styles.metaText}>
+                Date: <Text style={styles.metaStrong}>{safe(displayDate)}</Text>
+              </Text>
+            </View>
+          </View>
+
+          {/* Description */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Description: </Text>
+            <Text style={styles.sectionText}>
+              {safe(invoiceData.description) || "USED MOTOR VEHICLES"}
+            </Text>
+          </View>
+
+          {/* Vehicles table */}
+          <View style={styles.table}>
+            <View style={[styles.tr, styles.trHead]}>
+              {[
+                "#",
+                "Make",
+                "Model",
+                "Chassis No",
+                "Year",
+                "HS Code",
+                "Qty",
+                "FOB",
+                "Insurance",
+                "Freight",
+                "CIF",
+              ].map((h, i) => (
+                <Text
+                  key={h}
+                  style={[styles.th, i === 10 && styles.noRightBorder]}
+                >
+                  {h}
+                </Text>
+              ))}
+            </View>
+
+            {items.map((it, i) => (
+              <View key={i} style={styles.tr}>
+                <Text style={styles.td}>{i + 1}</Text>
+                <Text style={styles.td}>{safe(it.make) || "-"}</Text>
+                <Text style={styles.td}>{safe(it.model) || "-"}</Text>
+                <Text style={styles.td}>{safe(it.chassisNo) || "-"}</Text>
+                <Text style={styles.td}>{safe(it.year) || "-"}</Text>
+                <Text style={styles.td}>{safe(it.hsCode) || "-"}</Text>
+                <Text style={styles.td}>{safe(it.qty) || "-"}</Text>
+                <Text style={styles.td}>{fmt(it.fob)}</Text>
+                <Text style={styles.td}>{fmt(it.insurance)}</Text>
+                <Text style={styles.td}>{fmt(it.freight)}</Text>
+                <Text style={[styles.td, styles.noRightBorder]}>
+                  {fmt(it.cif)}
+                </Text>
+              </View>
             ))}
           </View>
 
-          {items.map((it, i) => (
-            <View key={i} style={styles.tr}>
-              <Text style={styles.td}>{i + 1}</Text>
-              <Text style={styles.td}>{safe(it.make) || "-"}</Text>
-              <Text style={styles.td}>{safe(it.model) || "-"}</Text>
-              <Text style={styles.td}>{safe(it.chassisNo) || "-"}</Text>
-              <Text style={styles.td}>{safe(it.year) || "-"}</Text>
-              <Text style={styles.td}>{safe(it.hsCode) || "-"}</Text>
-              <Text style={styles.td}>{safe(it.qty) || "-"}</Text>
-              <Text style={styles.td}>{fmt(it.fob)}</Text>
-              <Text style={styles.td}>{fmt(it.insurance)}</Text>
-              <Text style={styles.td}>{fmt(it.freight)}</Text>
-              <Text style={[styles.td, styles.noRightBorder]}>
-                {fmt(it.cif)}
-              </Text>
-            </View>
-          ))}
+          {/* Totals */}
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total CIF:</Text>
+            <Text style={styles.totalValue}>{fmt(totalCIF)}</Text>
+          </View>
         </View>
 
-        {/* Totals */}
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total CIF:</Text>
-          <Text style={styles.totalValue}>{fmt(totalCIF)}</Text>
-        </View>
-
-        {/* Terms & Conditions */}
+        {/* Terms & Conditions - Colored footer section */}
         {!!termsText && (
-          <View style={styles.termsSection}>
+          <View
+            style={[
+              styles.termsSection,
+              { backgroundColor: hexToRgba(accentColor, 0.08) },
+            ]}
+          >
             <Text style={[styles.termsTitle, { color: accentColor }]}>
-              Terms &amp; Conditions
+              Terms & Conditions
             </Text>
             <Text style={styles.termsBody}>{termsText}</Text>
           </View>
@@ -142,7 +162,6 @@ const PdfInvoice = ({ invoiceData = {}, templateData = {} }) => {
         {/* Bottom signature image (align right) */}
         {!!bottomLayerUrl && (
           <View style={styles.signatureRow}>
-            <View style={{ flex: 1 }} />
             <Image src={bottomLayerUrl} style={styles.signatureImg} />
           </View>
         )}
@@ -170,13 +189,19 @@ function safe(s) {
 function line(s) {
   return s ? `\n${s}` : "";
 }
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 /* ---------- styles (React-PDF / RN style) ---------- */
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 18,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingTop: 0,
+    paddingHorizontal: 0,
+    paddingBottom: 0,
     fontSize: 10,
     color: "#111",
     backgroundColor: "#fff",
@@ -184,25 +209,39 @@ const styles = StyleSheet.create({
 
   letterhead: {
     width: "100%",
-    height: 60,
+    height: 80,
+    objectFit: "contain",
   },
   letterheadFallback: {
     width: "100%",
-    height: 8,
-    borderRadius: 2,
+    height: 80,
+    backgroundColor: "#f9fafb",
+  },
+
+  mainContent: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    backgroundColor: "#f9fafb",
+  },
+
+  titleRow: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  invoiceTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textDecoration: "underline",
   },
 
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    marginBottom: 12,
   },
   blockLeft: {
     width: "55%",
-    paddingRight: 8,
+    flexDirection: "row",
   },
   blockRight: {
     width: "45%",
@@ -211,24 +250,18 @@ const styles = StyleSheet.create({
   blockLabel: {
     fontSize: 10,
     color: "#6b7280",
-    marginBottom: 2,
+    marginRight: 8,
   },
   blockText: {
-    fontSize: 11,
-    lineHeight: 1.35,
+    fontSize: 10,
+    lineHeight: 1.4,
     color: "#111827",
-    whiteSpace: "pre", // React-PDF supports literal \n in Text
   },
 
-  proformaTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
   metaText: {
     fontSize: 10,
     color: "#374151",
-    marginTop: 1,
+    marginTop: 2,
   },
   metaStrong: {
     fontWeight: "bold",
@@ -238,47 +271,48 @@ const styles = StyleSheet.create({
   section: {
     flexDirection: "row",
     alignItems: "baseline",
-    marginTop: 10,
+    marginBottom: 10,
   },
   sectionLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "bold",
     marginRight: 4,
   },
   sectionText: {
-    fontSize: 11,
+    fontSize: 10,
   },
 
   table: {
     marginTop: 8,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: "#d1d5db",
-    borderRightWidth: 0,
-    borderTopWidth: 0,
   },
   tr: {
     flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: "#d1d5db",
+    borderBottomWidth: 1,
+    borderBottomColor: "#d1d5db",
   },
   trHead: {
     backgroundColor: "#f3f4f6",
+    borderBottomWidth: 1,
+    borderBottomColor: "#d1d5db",
   },
   th: {
     flex: 1,
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: "bold",
-    paddingVertical: 6,
-    paddingHorizontal: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
     textAlign: "center",
     borderRightWidth: 1,
     borderRightColor: "#d1d5db",
   },
   td: {
     flex: 1,
-    fontSize: 9,
-    paddingVertical: 6,
-    paddingHorizontal: 4,
+    fontSize: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
     textAlign: "center",
     borderRightWidth: 1,
     borderRightColor: "#d1d5db",
@@ -290,10 +324,7 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: 8,
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+    paddingTop: 8,
   },
   totalLabel: {
     fontSize: 11,
@@ -301,37 +332,37 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   totalValue: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "bold",
   },
 
   termsSection: {
-    marginTop: 12,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 4,
-    backgroundColor: "#fafafa",
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#e5e7eb",
   },
   termsTitle: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "bold",
-    marginBottom: 4,
+    marginBottom: 6,
   },
   termsBody: {
-    fontSize: 9.5,
-    color: "#374151",
-    lineHeight: 1.35,
+    fontSize: 9,
+    color: "#1f2937",
+    lineHeight: 1.4,
   },
 
   signatureRow: {
-    flexDirection: "row",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
     alignItems: "flex-end",
-    marginTop: 16,
+    backgroundColor: "#f9fafb",
   },
   signatureImg: {
-    width: 140,
-    height: 48,
+    width: 120,
+    height: 50,
+    objectFit: "contain",
   },
 });
 
