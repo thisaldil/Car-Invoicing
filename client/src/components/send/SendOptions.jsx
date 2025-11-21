@@ -25,6 +25,7 @@ function sumCIF(items) {
 
 function SendOptions({ invoice, onBack }) {
   const [invoiceData, setInvoiceData] = useState(null);
+  const [templateData, setTemplateData] = useState(null);
   const [sendMethod, setSendMethod] = useState(null);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -41,8 +42,21 @@ function SendOptions({ invoice, onBack }) {
           `/invoice/getInvoiceDetailsByInvoiceId/${invoice.invoiceId}`
         );
         setInvoiceData(res.data);
+
+        // Fetch template data if available
+        if (res.data?.template?._id) {
+          try {
+            const templateRes = await api.get(
+              `/template/getTemplateById/${res.data.template._id}`
+            );
+            setTemplateData(templateRes.data);
+          } catch (err) {
+            console.error("Failed to load template", err);
+          }
+        }
       } catch (err) {
         console.error("Failed to load invoice preview", err);
+        toast.error("Failed to load invoice data");
       }
     };
 
@@ -59,19 +73,24 @@ function SendOptions({ invoice, onBack }) {
           email,
           pdfUrl: invoiceData?.pdfUrl,
         });
+        toast.success("Invoice sent via email successfully!");
       }
       if (sendMethod === "whatsapp") {
-        const message = `Dear Customer,\n\nThis is ${invoice.template.company.name}. Please find your invoice below:\n\n${invoiceData?.pdfUrl}\n\nThank you for your business.`;
+        // Get company name from template or use default
+        const companyName = templateData?.company?.name || "Our Company";
+        
+        const message = `Dear Customer,\n\nThis is ${companyName}. Please find your invoice below:\n\n${invoiceData?.pdfUrl}\n\nThank you for your business.`;
         const sanitizedPhone = `${selectedCode}${phone.replace(/\D/g, "")}`;
         const whatsappLink = `https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(
           message
         )}`;
         window.open(whatsappLink, "_blank");
+        toast.success("WhatsApp opened successfully!");
       }
       setIsSent(true);
       setTimeout(() => setIsSent(false), 3000);
-      toast.success("Invoice sent successfully!");
     } catch (err) {
+      console.error("Send error:", err);
       toast.error("Failed to send invoice. Please try again.");
     } finally {
       setIsSending(false);
@@ -85,11 +104,12 @@ function SendOptions({ invoice, onBack }) {
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
 
-      // Create meaningful filename with booking reference and date
-      const bookingRef =
-        invoiceData?.invoiceDetails.bookingReference || "DRAFT";
+      // Create meaningful filename with invoice number and date
+      const invoiceNo =
+        invoiceData?.invoiceDetails?.invoiceNo || "DRAFT";
       const currentDate = new Date().toISOString().split("T")[0];
-      const fileName = `${bookingRef}-invoice-${currentDate}.pdf`;
+      const safeRef = String(invoiceNo).replace(/[^\w\-]+/g, "_");
+      const fileName = `${safeRef}-invoice-${currentDate}.pdf`;
 
       const a = document.createElement("a");
       a.href = url;
@@ -98,6 +118,7 @@ function SendOptions({ invoice, onBack }) {
       window.URL.revokeObjectURL(url);
       toast.success("PDF downloaded successfully!");
     } catch (err) {
+      console.error("Download error:", err);
       toast.error("Failed to download PDF");
     } finally {
       setIsDownloading(false);
@@ -159,6 +180,18 @@ function SendOptions({ invoice, onBack }) {
     fetchCountryCodes();
   }, []);
 
+  // Prepare the complete invoice data for preview
+  const getPreviewData = () => {
+    if (!invoiceData) return null;
+
+    return {
+      ...invoiceData.invoiceDetails,
+      invoiceType: invoiceData.invoiceType || "type1",
+      date: invoiceData.invoiceDetails.date || new Date().toLocaleDateString("en-GB"),
+      items: invoiceData.invoiceDetails.items || [],
+    };
+  };
+
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">
@@ -177,7 +210,10 @@ function SendOptions({ invoice, onBack }) {
             {invoiceData?.pdfUrl && (
               <button
                 onClick={handleDownload}
-                className="text-orange-600 hover:text-orange-800 flex items-center text-sm"
+                disabled={isDownloading}
+                className={`text-orange-600 hover:text-orange-800 flex items-center text-sm ${
+                  isDownloading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
                 <DownloadIcon className="w-4 h-4 mr-1" />
                 {isDownloading ? "Downloading..." : "Download Invoice"}
@@ -185,15 +221,17 @@ function SendOptions({ invoice, onBack }) {
             )}
           </div>
           <div className="p-4">
-            {invoiceData ? (
+            {invoiceData && templateData ? (
               <InvoicePreviewPage
-                invoiceData={invoiceData.invoiceDetails}
-                invoice={invoice}
+                invoiceData={getPreviewData()}
+                templateData={templateData}
               />
             ) : (
-              <p className="text-gray-500 dark:text-gray-300">
-                Loading preview...
-              </p>
+              <div className="flex items-center justify-center h-64">
+                <p className="text-gray-500 dark:text-gray-300">
+                  Loading preview...
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -213,7 +251,7 @@ function SendOptions({ invoice, onBack }) {
                 <div className="space-y-3">
                   <button
                     onClick={() => setSendMethod("email")}
-                    className={`flex items-center w-full p-3 border rounded-md ${
+                    className={`flex items-center w-full p-3 border rounded-md transition-colors ${
                       sendMethod === "email"
                         ? "border-orange-500 bg-orange-50 dark:bg-orange-900"
                         : "border-gray-300 dark:border-gray-600 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-gray-700"
@@ -234,7 +272,7 @@ function SendOptions({ invoice, onBack }) {
                         }`}
                       />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 text-left">
                       <h4 className="font-medium text-gray-800 dark:text-white">
                         Send via Email
                       </h4>
@@ -249,7 +287,7 @@ function SendOptions({ invoice, onBack }) {
 
                   <button
                     onClick={() => setSendMethod("whatsapp")}
-                    className={`flex items-center w-full p-3 border rounded-md ${
+                    className={`flex items-center w-full p-3 border rounded-md transition-colors ${
                       sendMethod === "whatsapp"
                         ? "border-green-500 bg-green-50 dark:bg-green-900"
                         : "border-gray-300 dark:border-gray-600 hover:border-green-300 hover:bg-green-50 dark:hover:bg-gray-700"
@@ -270,7 +308,7 @@ function SendOptions({ invoice, onBack }) {
                         }`}
                       />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 text-left">
                       <h4 className="font-medium text-gray-800 dark:text-white">
                         Send via WhatsApp
                       </h4>
@@ -280,7 +318,7 @@ function SendOptions({ invoice, onBack }) {
                       </p>
                     </div>
                     {sendMethod === "whatsapp" && (
-                      <CheckIcon className="w-5 h-5 text-orange-600" />
+                      <CheckIcon className="w-5 h-5 text-green-600" />
                     )}
                   </button>
                 </div>
@@ -296,7 +334,7 @@ function SendOptions({ invoice, onBack }) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="client@example.com"
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
               )}
@@ -310,7 +348,7 @@ function SendOptions({ invoice, onBack }) {
                     <select
                       value={selectedCode}
                       onChange={(e) => setSelectedCode(e.target.value)}
-                      className="w-1/3 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+                      className="w-1/3 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     >
                       {countryCodes.map((c) => (
                         <option key={c.code} value={c.code}>
@@ -323,7 +361,7 @@ function SendOptions({ invoice, onBack }) {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="712345678"
-                      className="w-2/3 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+                      className="w-2/3 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -339,7 +377,7 @@ function SendOptions({ invoice, onBack }) {
               <div className="flex justify-between pt-4">
                 <button
                   onClick={onBack}
-                  className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-800 dark:text-white"
+                  className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-800 dark:text-white transition-colors"
                 >
                   <ArrowLeftIcon className="w-4 h-4 mr-2" />
                   Back
@@ -352,12 +390,12 @@ function SendOptions({ invoice, onBack }) {
                     (sendMethod === "whatsapp" && !phone) ||
                     isSending
                   }
-                  className={`px-6 py-2 rounded-md ${
+                  className={`px-6 py-2 rounded-md transition-colors ${
                     !sendMethod ||
                     (sendMethod === "email" && !email) ||
                     (sendMethod === "whatsapp" && !phone) ||
                     isSending
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                       : "bg-orange-600 text-white hover:bg-orange-700"
                   }`}
                 >
