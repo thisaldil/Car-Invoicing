@@ -264,27 +264,41 @@ export default function ProformaInvoiceForm({ onSave }) {
     [invoice.items]
   );
 
-  const handleItemChange = (index, key, value) => {
-    setInvoice((prev) => {
-      const next = { ...prev };
-      next.items = prev.items.map((it, i) =>
-        i === index ? { ...it, [key]: value } : it
-      );
-      if (["fob", "insurance", "freight"].includes(key)) {
-        const row = next.items[index];
-        const cif = toNum(row.fob) + toNum(row.insurance) + toNum(row.freight);
-        next.items[index].cif =
-          Number.isFinite(cif) && cif > 0 ? String(cif) : "";
+const handleItemChange = (index, key, value) => {
+  setInvoice((prev) => {
+    const next = { ...prev };
+    next.items = prev.items.map((it, i) =>
+      i === index ? { ...it, [key]: value } : it
+    );
+    
+    // Recalculate CIF when FOB, Insurance, Freight, or Qty changes
+    if (["fob", "insurance", "freight", "qty"].includes(key)) {
+      const row = next.items[index];
+      
+      // Extract numeric quantity (handles "1 UNIT", "2 UNITS", "2", etc.)
+      const qtyStr = String(row.qty || "1");
+      const qtyMatch = qtyStr.match(/(\d+)/);
+      const quantity = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
+      
+      // Calculate CIF per unit
+      const cifPerUnit = toNum(row.fob) + toNum(row.insurance) + toNum(row.freight);
+      
+      // Multiply by quantity
+      const totalCif = cifPerUnit * quantity;
+      
+      next.items[index].cif =
+        Number.isFinite(totalCif) && totalCif > 0 ? String(totalCif) : "";
+    }
+    
+    if (key === "make") {
+      const models = MODELS_BY_MAKE[value] || [];
+      if (!models.includes(next.items[index].model)) {
+        next.items[index].model = "";
       }
-      if (key === "make") {
-        const models = MODELS_BY_MAKE[value] || [];
-        if (!models.includes(next.items[index].model)) {
-          next.items[index].model = "";
-        }
-      }
-      return next;
-    });
-  };
+    }
+    return next;
+  });
+};
 
   const addRow = () =>
     setInvoice((prev) => ({
