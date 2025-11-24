@@ -373,7 +373,7 @@ const handleItemChange = (index, key, value) => {
               <option value="type1">PERFORMA INVOICE</option>
               <option value="type2">COMMERCIAL INVOICE</option>
               <option value="type3">INVOICE</option>
-              <option value="type3">CASH RECEIPT</option>
+              <option value="type4">CASH RECEIPT</option>
             </select>
           </div>
           <Field
