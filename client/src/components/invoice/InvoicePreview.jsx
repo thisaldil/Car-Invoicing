@@ -11,6 +11,7 @@ function toNum(x) {
   const n = typeof x === "string" ? Number(x.replace(/,/g, "")) : Number(x);
   return Number.isFinite(n) ? n : 0;
 }
+
 function fmt(n) {
   const v = toNum(n);
   return v
@@ -20,17 +21,24 @@ function fmt(n) {
       }).format(v)
     : n || "-";
 }
+
 function sumCIF(items) {
   return (items || []).reduce((s, r) => s + toNum(r?.cif), 0);
 }
 
-export default function InvoicePreview({
-  invoiceData,
-  accentColor = "#3B82F6",
-  letterheadUrl,
-  termsText,
-  bottomLayerUrl,
-}) {
+export default function InvoicePreview({ invoiceData, templateData }) {
+  // Extract template design settings
+  const design = templateData?.design || {};
+  const accentColor = design.accentColor || "#3B82F6";
+  const letterheadUrl = design.letterheadUrl || null;
+  const termsText = design.termsText || "";
+  const bottomLayerUrl = design.bottomLayerUrl || null;
+
+  // Check for dark mode (you might want to use a context or prop for this)
+  const isDarkMode = 
+    document.documentElement.classList.contains("dark") ||
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+
   return (
     <div
       className="relative mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700"
@@ -71,12 +79,14 @@ export default function InvoicePreview({
         style={{ minHeight: 400 }}
       >
         {/* Invoice Type Title */}
-        <div className="flex justify-center mt-2 mb-6">
+        <div className="flex justify-center mb-6">
           <span
             className="font-bold text-2xl underline"
             style={{ color: accentColor }}
           >
-            {INVOICE_TYPE_LABELS[invoiceData?.invoiceType] || "INVOICE"}
+            {INVOICE_TYPE_LABELS[invoiceData?.invoiceType] ||
+              invoiceData?.invoiceType ||
+              "INVOICE"}
           </span>
         </div>
 
@@ -167,43 +177,38 @@ export default function InvoicePreview({
         </div>
       </div>
 
-      {/* FOOTER */}
-      <div
-        className="p-8 md:p-10"
-        style={{
-          background:
-            accentColor +
-            (window.matchMedia("(prefers-color-scheme: dark)").matches
-              ? "22"
-              : "0A"),
-          borderTopLeftRadius: 18,
-          borderTopRightRadius: 18,
-          borderBottomLeftRadius: bottomLayerUrl ? 0 : 18,
-          borderBottomRightRadius: bottomLayerUrl ? 0 : 18,
-          borderTop: "1px solid #e5e7eb",
-          minHeight: 120,
-        }}
-      >
-        <h3
-          className="font-semibold mb-2"
-          style={{ color: accentColor, fontSize: 18 }}
+      {/* FOOTER - Terms & Conditions */}
+      {termsText && (
+        <div
+          className="p-8 md:p-10"
+          style={{
+            background: accentColor + (isDarkMode ? "22" : "0A"),
+            borderTopLeftRadius: 18,
+            borderTopRightRadius: 18,
+            borderBottomLeftRadius: bottomLayerUrl ? 0 : 18,
+            borderBottomRightRadius: bottomLayerUrl ? 0 : 18,
+            borderTop: "1px solid #e5e7eb",
+            minHeight: 120,
+          }}
         >
-          Terms & Conditions
-        </h3>
-        <pre className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-100">
-          {termsText}
-        </pre>
-      </div>
+          <h3
+            className="font-semibold mb-2"
+            style={{ color: accentColor, fontSize: 18 }}
+          >
+            Terms & Conditions
+          </h3>
+          <pre className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-100">
+            {termsText}
+          </pre>
+        </div>
+      )}
 
       {/* BOTTOM IMAGE */}
       {bottomLayerUrl && (
         <div
           className="flex justify-end items-end px-8 pb-6 pt-2"
           style={{
-            background: window.matchMedia("(prefers-color-scheme: dark)")
-              .matches
-              ? "#222"
-              : "#f9fafb",
+            background: isDarkMode ? "#222" : "#f9fafb",
             borderBottomLeftRadius: 18,
             borderBottomRightRadius: 18,
           }}
