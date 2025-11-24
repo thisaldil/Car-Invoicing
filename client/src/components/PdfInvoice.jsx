@@ -44,127 +44,134 @@ const PdfInvoice = ({ invoiceData = {}, templateData = {} }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Letterhead bar (full width) */}
-        {letterheadUrl ? (
-          <Image src={letterheadUrl} style={styles.letterhead} />
-        ) : (
-          <View style={styles.letterheadFallback} />
-        )}
+        {/* Wrap everything in a flex container */}
+        <View style={styles.pageContainer}>
+          {/* Letterhead bar (full width) */}
+          {letterheadUrl ? (
+            <Image src={letterheadUrl} style={styles.letterhead} />
+          ) : (
+            <View style={styles.letterheadFallback} />
+          )}
 
-        {/* Main content section with light background */}
-        <View style={styles.mainContent}>
-          {/* Invoice Type Title - Centered */}
-          <View style={styles.titleRow}>
-            <Text style={[styles.invoiceTitle, { color: accentColor }]}>
-              {invoiceTypeLabel}
-            </Text>
-          </View>
-
-          {/* Consignee and Invoice Meta Row */}
-          <View style={styles.topRow}>
-            {/* Left: Consignee */}
-            <View style={styles.blockLeft}>
-              <Text style={styles.blockLabel}>Consignee:</Text>
-              <Text style={styles.blockText}>
-                {safe(invoiceData.consigneeName)}
-                {line(invoiceData.addressLine1)}
-                {line(invoiceData.addressLine2)}
-                {line(invoiceData.addressLine3)}
+          {/* Main content section - grows to fill space */}
+          <View style={styles.mainContent}>
+            {/* Invoice Type Title - Centered */}
+            <View style={styles.titleRow}>
+              <Text style={[styles.invoiceTitle, { color: accentColor }]}>
+                {invoiceTypeLabel}
               </Text>
             </View>
 
-            {/* Right: Invoice meta */}
-            <View style={styles.blockRight}>
-              <Text style={styles.metaText}>
-                Invoice No.:{" "}
-                <Text style={styles.metaStrong}>{safe(bookingRef)}</Text>
-              </Text>
-              <Text style={styles.metaText}>
-                Date: <Text style={styles.metaStrong}>{safe(displayDate)}</Text>
-              </Text>
-            </View>
-          </View>
-
-          {/* Description */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Description: </Text>
-            <Text style={styles.sectionText}>
-              {safe(invoiceData.description) || "USED MOTOR VEHICLES"}
-            </Text>
-          </View>
-
-          {/* Vehicles table */}
-          <View style={styles.table}>
-            <View style={[styles.tr, styles.trHead]}>
-              {[
-                "#",
-                "Make",
-                "Model",
-                "Chassis No",
-                "Year",
-                "HS Code",
-                "Qty",
-                "FOB",
-                "Insurance",
-                "Freight",
-                "CIF",
-              ].map((h, i) => (
-                <Text
-                  key={h}
-                  style={[styles.th, i === 10 && styles.noRightBorder]}
-                >
-                  {h}
+            {/* Consignee and Invoice Meta Row */}
+            <View style={styles.topRow}>
+              {/* Left: Consignee */}
+              <View style={styles.blockLeft}>
+                <Text style={styles.blockLabel}>Consignee:</Text>
+                <Text style={styles.blockText}>
+                  {safe(invoiceData.consigneeName)}
+                  {line(invoiceData.addressLine1)}
+                  {line(invoiceData.addressLine2)}
+                  {line(invoiceData.addressLine3)}
                 </Text>
+              </View>
+
+              {/* Right: Invoice meta */}
+              <View style={styles.blockRight}>
+                <Text style={styles.metaText}>
+                  Invoice No.:{" "}
+                  <Text style={styles.metaStrong}>{safe(bookingRef)}</Text>
+                </Text>
+                <Text style={styles.metaText}>
+                  Date:{" "}
+                  <Text style={styles.metaStrong}>{safe(displayDate)}</Text>
+                </Text>
+              </View>
+            </View>
+
+            {/* Description */}
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Description: </Text>
+              <Text style={styles.sectionText}>
+                {safe(invoiceData.description) || "USED MOTOR VEHICLES"}
+              </Text>
+            </View>
+
+            {/* Vehicles table */}
+            <View style={styles.table}>
+              <View style={[styles.tr, styles.trHead]}>
+                {[
+                  "#",
+                  "Make",
+                  "Model",
+                  "Chassis No",
+                  "Year",
+                  "HS Code",
+                  "Qty",
+                  "FOB",
+                  "Insurance",
+                  "Freight",
+                  "CIF",
+                ].map((h, i) => (
+                  <Text
+                    key={h}
+                    style={[styles.th, i === 10 && styles.noRightBorder]}
+                  >
+                    {h}
+                  </Text>
+                ))}
+              </View>
+
+              {items.map((it, i) => (
+                <View key={i} style={styles.tr}>
+                  <Text style={styles.td}>{i + 1}</Text>
+                  <Text style={styles.td}>{safe(it.make) || "-"}</Text>
+                  <Text style={styles.td}>{safe(it.model) || "-"}</Text>
+                  <Text style={styles.td}>{safe(it.chassisNo) || "-"}</Text>
+                  <Text style={styles.td}>{safe(it.year) || "-"}</Text>
+                  <Text style={styles.td}>{safe(it.hsCode) || "-"}</Text>
+                  <Text style={styles.td}>{safe(it.qty) || "-"}</Text>
+                  <Text style={styles.td}>{fmt(it.fob)}</Text>
+                  <Text style={styles.td}>{fmt(it.insurance)}</Text>
+                  <Text style={styles.td}>{fmt(it.freight)}</Text>
+                  <Text style={[styles.td, styles.noRightBorder]}>
+                    {fmt(it.cif)}
+                  </Text>
+                </View>
               ))}
             </View>
 
-            {items.map((it, i) => (
-              <View key={i} style={styles.tr}>
-                <Text style={styles.td}>{i + 1}</Text>
-                <Text style={styles.td}>{safe(it.make) || "-"}</Text>
-                <Text style={styles.td}>{safe(it.model) || "-"}</Text>
-                <Text style={styles.td}>{safe(it.chassisNo) || "-"}</Text>
-                <Text style={styles.td}>{safe(it.year) || "-"}</Text>
-                <Text style={styles.td}>{safe(it.hsCode) || "-"}</Text>
-                <Text style={styles.td}>{safe(it.qty) || "-"}</Text>
-                <Text style={styles.td}>{fmt(it.fob)}</Text>
-                <Text style={styles.td}>{fmt(it.insurance)}</Text>
-                <Text style={styles.td}>{fmt(it.freight)}</Text>
-                <Text style={[styles.td, styles.noRightBorder]}>
-                  {fmt(it.cif)}
-                </Text>
-              </View>
-            ))}
+            {/* Totals */}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total CIF:</Text>
+              <Text style={styles.totalValue}>{fmt(totalCIF)}</Text>
+            </View>
           </View>
 
-          {/* Totals */}
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total CIF:</Text>
-            <Text style={styles.totalValue}>{fmt(totalCIF)}</Text>
-          </View>
+          {/* Spacer to push footer to bottom */}
+          <View style={{ flex: 1 }} />
+
+          {/* Terms & Conditions - Colored footer section */}
+          {!!termsText && (
+            <View
+              style={[
+                styles.termsSection,
+                { backgroundColor: hexToRgba(accentColor, 0.08) },
+              ]}
+            >
+              <Text style={[styles.termsTitle, { color: accentColor }]}>
+                Terms & Conditions
+              </Text>
+              <Text style={styles.termsBody}>{termsText}</Text>
+            </View>
+          )}
+
+          {/* Bottom signature image (align right) */}
+          {!!bottomLayerUrl && (
+            <View style={styles.signatureRow}>
+              <Image src={bottomLayerUrl} style={styles.signatureImg} />
+            </View>
+          )}
         </View>
-
-        {/* Terms & Conditions - Colored footer section */}
-        {!!termsText && (
-          <View
-            style={[
-              styles.termsSection,
-              { backgroundColor: hexToRgba(accentColor, 0.08) },
-            ]}
-          >
-            <Text style={[styles.termsTitle, { color: accentColor }]}>
-              Terms & Conditions
-            </Text>
-            <Text style={styles.termsBody}>{termsText}</Text>
-          </View>
-        )}
-
-        {/* Bottom signature image (align right) */}
-        {!!bottomLayerUrl && (
-          <View style={styles.signatureRow}>
-            <Image src={bottomLayerUrl} style={styles.signatureImg} />
-          </View>
-        )}
       </Page>
     </Document>
   );
@@ -207,6 +214,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 
+  // NEW: Flex container for the entire page
+  pageContainer: {
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100%",
+  },
+
   letterhead: {
     width: "100%",
     height: 80,
@@ -222,6 +236,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 20,
     backgroundColor: "#f9fafb",
+    flexGrow: 1, // Allow content to grow
   },
 
   titleRow: {
@@ -341,6 +356,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
+    flexShrink: 0, // Prevent shrinking
   },
   termsTitle: {
     fontSize: 13,
@@ -358,6 +374,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "flex-end",
     backgroundColor: "#f9fafb",
+    flexShrink: 0, // Prevent shrinking
   },
   signatureImg: {
     width: 120,
