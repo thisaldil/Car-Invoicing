@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Sun, Moon, Monitor } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "system");

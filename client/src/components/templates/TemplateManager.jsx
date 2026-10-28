@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { PlusIcon, CheckIcon, EditIcon, TrashIcon } from "lucide-react";
-import axios from "axios";
 import api from "../../utils/axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -23,7 +22,7 @@ function TemplateManager({ invoiceData, onSelectTemplate, onCreateTemplate }) {
       }
     };
     fetchTemplates();
-  }, []);
+  }, [userId]);
 
   const handleSetDefault = async (templateId) => {
     try {

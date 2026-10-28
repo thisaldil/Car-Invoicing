@@ -4,7 +4,6 @@ import {
   FileUpIcon,
   SendIcon,
   BoxIcon,
-  QuoteIcon,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 // import axios from "axios";
@@ -32,7 +31,7 @@ function Dashboard({ setGeneratedInvoice }) {
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
     setUser(storedUser);
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -113,7 +112,7 @@ function Dashboard({ setGeneratedInvoice }) {
     };
 
     fetchInvoices();
-  }, [userId]);
+  }, [userId, navigate]);
 
   if (loading) {
     return (

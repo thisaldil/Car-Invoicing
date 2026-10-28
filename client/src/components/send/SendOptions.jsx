@@ -10,19 +10,6 @@ import {
 import toast from "react-hot-toast";
 import InvoicePreviewPage from "../invoice/InvoicePreview";
 
-// Utility function for formatting money
-function formatMoney(n) {
-  return new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n || 0);
-}
-
-// Utility function for summing CIF values
-function sumCIF(items) {
-  return (items || []).reduce((s, r) => s + (Number(r?.cif) || 0), 0);
-}
-
 function SendOptions({ invoice, onBack }) {
   const [invoiceData, setInvoiceData] = useState(null);
   const [templateData, setTemplateData] = useState(null);
@@ -108,7 +95,7 @@ function SendOptions({ invoice, onBack }) {
       const invoiceNo =
         invoiceData?.invoiceDetails?.invoiceNo || "DRAFT";
       const currentDate = new Date().toISOString().split("T")[0];
-      const safeRef = String(invoiceNo).replace(/[^\w\-]+/g, "_");
+      const safeRef = String(invoiceNo).replace(/[^\w-]+/g, "_");
       const fileName = `${safeRef}-invoice-${currentDate}.pdf`;
 
       const a = document.createElement("a");

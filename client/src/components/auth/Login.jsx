@@ -1,13 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
 import bg from "../../images/bg.png";
 import LoginForm from "../../components/auth/LoginForm";
 import LoginGoogle from "../../components/auth/GoogleLogin";
 
 const Login = () => {
-  const navigate = useNavigate();
-
   const handleLoginSuccess = (data) => {
     console.log("Email login success:", data);
     // Navigation is handled in LoginForm component

@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   SaveIcon,
   XIcon,
-  PlusIcon,
-  LayoutIcon,
-  TypeIcon,
   SunIcon,
   MoonIcon,
 } from "lucide-react";
@@ -146,7 +143,7 @@ function TemplateEditor({ invoiceData, onSave, onCancel }) {
           return;
         }
         const currentDate = new Date().toISOString().split("T")[0];
-        const safeRef = String(invoiceNo).replace(/[^\w\-]+/g, "_");
+        const safeRef = String(invoiceNo).replace(/[^\w-]+/g, "_");
         const fileName = `${safeRef}-invoice-${currentDate}.pdf`;
 
         // Duplicate check only if we have a real invoiceNo

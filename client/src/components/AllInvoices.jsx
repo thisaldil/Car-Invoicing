@@ -35,7 +35,7 @@ const AllInvoices = ({ setGeneratedInvoice }) => {
     };
 
     fetchInvoices();
-  }, [userId]);
+  }, [userId, navigate]);
 
   useEffect(() => {
     const invoiceNoCounts = {};
